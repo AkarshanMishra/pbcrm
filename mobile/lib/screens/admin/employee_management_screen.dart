@@ -1030,7 +1030,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade200)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId))),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId, initialData: emp))),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -1091,7 +1091,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
                 icon: const Icon(Icons.more_vert, color: Colors.blueGrey),
                 onSelected: (action) {
                   if (action == 'INSPECT') {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId)));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId, initialData: emp)));
                   } else if (action == 'IMPERSONATE') {
                     _impersonateEmployee(emp);
                   } else if (action == 'EDIT') {
@@ -1128,7 +1128,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: Colors.grey.shade200)),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId))),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId, initialData: emp))),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -1186,7 +1186,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       minimumSize: const Size(60, 28),
                     ),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId))),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(employeeId: empId, initialData: emp))),
                     child: const Text('360° View', style: TextStyle(fontSize: 11)),
                   ),
                 ],
