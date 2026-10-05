@@ -42,6 +42,7 @@ import '../analytics/performance_insights_screen.dart';
 import '../support/help_support_screen.dart';
 import '../tickets/tickets_screen.dart';
 import 'positions_management_screen.dart';
+import 'admin_notification_control_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -642,7 +643,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 100:
         return const UniversalSearchScreen();
       case 101:
-        return const NotificationCenterScreen();
+        return const AdminNotificationControlScreen();
       case 102:
         return const HRShellScreen();
       case 103:
