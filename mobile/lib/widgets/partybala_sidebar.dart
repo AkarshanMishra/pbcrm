@@ -53,38 +53,24 @@ class _PartyBalaSidebarState extends State<PartyBalaSidebar> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
 
-    return Stack(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Main Sidebar Column (Dark Navy/Slate Theme #0F172A)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: _isCollapsed ? 76 : 268,
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(right: BorderSide(color: Color(0xFF1E293B), width: 1)),
-              ),
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    child: _currentRoleView == SidebarRoleView.superAdmin
-                        ? _buildSuperAdminMenu()
-                        : _buildRoleSpecificMenu(_currentRoleView),
-                  ),
-                  _buildUserFooter(user),
-                ],
-              ),
-            ),
-
-            // Expanded Flyout Panel (when clicking expandable item)
-            if (_expandedFlyoutKey != null && !_isCollapsed)
-              _buildFlyoutPanel(),
-          ],
-        ),
-      ],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: _isCollapsed ? 76 : 268,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F172A),
+        border: Border(right: BorderSide(color: Color(0xFF1E293B), width: 1)),
+      ),
+      child: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: _currentRoleView == SidebarRoleView.superAdmin
+                ? _buildSuperAdminMenu()
+                : _buildRoleSpecificMenu(_currentRoleView),
+          ),
+          _buildUserFooter(user),
+        ],
+      ),
     );
   }
 
@@ -600,14 +586,8 @@ class _PartyBalaSidebarState extends State<PartyBalaSidebar> {
           borderRadius: BorderRadius.circular(10),
           hoverColor: const Color(0xFF1E293B).withOpacity(0.6),
           onTap: () {
-            if (hasChevron && flyoutKey != null && !_isCollapsed) {
-              setState(() {
-                _expandedFlyoutKey = _expandedFlyoutKey == flyoutKey ? null : flyoutKey;
-              });
-            } else {
-              setState(() => _expandedFlyoutKey = null);
-              widget.onItemSelected(index);
-            }
+            setState(() => _expandedFlyoutKey = null);
+            widget.onItemSelected(index);
           },
           child: Tooltip(
             message: _isCollapsed ? title : '',
