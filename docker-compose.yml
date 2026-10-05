@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pcrm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-pcrm_db}
+      POSTGRES_USER: ${DB_USER:-pcrm_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pcrm_secure_password_123!}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pcrm_user} -d ${DB_NAME:-pcrm_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pcrm_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.django
+    container_name: pcrm_backend
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.example
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: pcrm_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:

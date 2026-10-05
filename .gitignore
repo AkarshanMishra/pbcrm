@@ -1,0 +1,53 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+backend/env/
+venv/
+env/
+ENV/
+*.sqlite3
+*.db
+backend/.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/.pub-cache/
+mobile/.pub/
+mobile/build/
+mobile/android/.gradle/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/.kotlin/
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Flutter/app.framework
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/profile
+mobile/ios/debug
+mobile/ios/release
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Large Binaries
+*.apk
+*.aab
