@@ -19,7 +19,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['name', 'created_at']
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'transfer_employees']:
             return [IsAdminUserOnly()]
         return super().get_permissions()
 
@@ -31,6 +31,108 @@ class DepartmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=['get'])
+    def details(self, request, pk=None):
+        dept = self.get_object()
+        employees_qs = dept.employees.select_related('user', 'position', 'role').all()
+        
+        employees_data = []
+        for emp in employees_qs:
+            employees_data.append({
+                'id': str(emp.id),
+                'user_id': str(emp.user.id),
+                'name': emp.user.get_full_name() or f"{emp.first_name} {emp.last_name}",
+                'employee_code': emp.user.employee_code,
+                'email': emp.user.email,
+                'phone': emp.user.phone or '',
+                'position_title': emp.position.title if emp.position else 'N/A',
+                'position_id': str(emp.position.id) if emp.position else None,
+                'role_name': emp.role.name if emp.role else 'Staff',
+                'is_active': emp.user.is_active,
+                'employment_type': emp.employment_type,
+                'joining_date': str(emp.date_of_joining) if hasattr(emp, 'date_of_joining') and emp.date_of_joining else None,
+            })
+
+        positions_qs = dept.positions.all()
+        positions_data = [
+            {
+                'id': str(p.id),
+                'title': p.title,
+                'code': p.code,
+                'description': p.description,
+                'is_active': p.is_active,
+                'employee_count': p.employees.count(),
+            }
+            for p in positions_qs
+        ]
+
+        jobs_data = []
+        if hasattr(dept, 'job_openings'):
+            jobs_data = [
+                {
+                    'id': str(j.id),
+                    'code': j.code,
+                    'title': j.title,
+                    'status': j.status,
+                    'openings_count': j.openings_count,
+                    'experience_required': j.experience_required,
+                    'applications_count': j.applications.count() if hasattr(j, 'applications') else 0,
+                }
+                for j in dept.job_openings.all()
+            ]
+
+        return Response({
+            'department': DepartmentSerializer(dept).data,
+            'employees': employees_data,
+            'positions': positions_data,
+            'jobs': jobs_data,
+            'stats': {
+                'total_employees': len(employees_data),
+                'active_employees': sum(1 for e in employees_data if e['is_active']),
+                'total_positions': len(positions_data),
+                'active_jobs': sum(1 for j in jobs_data if j['status'] == 'OPEN'),
+            }
+        })
+
+    @action(detail=True, methods=['post'], url_path='transfer-employees')
+    def transfer_employees(self, request, pk=None):
+        source_dept = self.get_object()
+        target_dept_id = request.data.get('target_department_id')
+        target_pos_id = request.data.get('target_position_id')
+        employee_ids = request.data.get('employee_ids', [])
+
+        if not target_dept_id:
+            return Response({'error': 'target_department_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not employee_ids:
+            return Response({'error': 'employee_ids list cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_dept = Department.objects.get(id=target_dept_id)
+        except Department.DoesNotExist:
+            return Response({'error': 'Target department not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        target_pos = None
+        if target_pos_id:
+            target_pos = target_dept.positions.filter(id=target_pos_id).first()
+
+        from apps.employees.models import Employee
+        updated_count = 0
+        for emp_id in employee_ids:
+            emp = Employee.objects.filter(id=emp_id, department=source_dept).first()
+            if emp:
+                emp.department = target_dept
+                if target_pos:
+                    emp.position = target_pos
+                emp.save(update_fields=['department', 'position'] if target_pos else ['department'])
+                updated_count += 1
+
+        return Response({
+            'success': True,
+            'message': f"Successfully transferred {updated_count} employee(s) to '{target_dept.name}'.",
+            'transferred_count': updated_count,
+        })
+
 
 
 class PositionViewSet(viewsets.ModelViewSet):

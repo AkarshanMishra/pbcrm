@@ -4,13 +4,41 @@ from .models import Department, Position, Role, Permission, RolePermission
 class DepartmentSerializer(serializers.ModelSerializer):
     position_count = serializers.IntegerField(source='positions.count', read_only=True)
     employee_count = serializers.IntegerField(source='employees.count', read_only=True)
+    active_employee_count = serializers.SerializerMethodField()
+    open_jobs_count = serializers.SerializerMethodField()
+    positions_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Department
-        fields = ['id', 'name', 'code', 'description', 'is_active', 'position_count', 'employee_count', 'created_at']
+        fields = [
+            'id', 'name', 'code', 'description', 'is_active',
+            'position_count', 'employee_count', 'active_employee_count',
+            'open_jobs_count', 'positions_list', 'created_at'
+        ]
 
     def validate_code(self, value):
         return value.strip().upper()
+
+    def get_active_employee_count(self, obj):
+        return obj.employees.filter(user__is_active=True).count()
+
+    def get_open_jobs_count(self, obj):
+        if hasattr(obj, 'job_openings'):
+            return obj.job_openings.filter(status='OPEN').count()
+        return 0
+
+    def get_positions_list(self, obj):
+        return [
+            {
+                'id': str(p.id),
+                'title': p.title,
+                'code': p.code,
+                'is_active': p.is_active,
+                'employee_count': p.employees.count(),
+            }
+            for p in obj.positions.all()[:10]
+        ]
+
 
 
 class PositionSerializer(serializers.ModelSerializer):
