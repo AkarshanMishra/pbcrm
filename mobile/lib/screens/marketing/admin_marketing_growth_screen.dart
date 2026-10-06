@@ -15,17 +15,20 @@ class AdminMarketingGrowthScreen extends StatefulWidget {
   State<AdminMarketingGrowthScreen> createState() => _AdminMarketingGrowthScreenState();
 }
 
-class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen> with SingleTickerProviderStateMixin {
+class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
+    with SingleTickerProviderStateMixin {
   final ApiClient _api = ApiClient();
   late TabController _tabController;
   int _currentSection = 0;
   String _searchQuery = '';
+  String _leadStageFilter = 'ALL';
+  String _selectedDateHorizon = 'Today';
 
-  // ---------------------------------------------------------------------------
-  // STATE STORE FOR ALL MARKETING & GROWTH ENTITIES (FULL CRUD)
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 1. DATA STORES (COMPLETE ENTERPRISE MARKETING & GROWTH ENTITIES)
+  // ===========================================================================
 
-  // 1. Leads
+  // 1.1 CRM — Leads
   final List<Map<String, dynamic>> _leads = [
     {
       'id': 'LD-1024',
@@ -117,7 +120,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
-  // 2. Contacts
+  // 1.2 CRM — Contacts & Accounts
   final List<Map<String, dynamic>> _contacts = [
     {
       'id': 'CNT-501',
@@ -160,7 +163,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
-  // 3. Campaigns
+  // 1.3 Acquisition — Campaigns & Channels
   final List<Map<String, dynamic>> _campaigns = [
     {
       'id': 'CMP-2026-01',
@@ -212,7 +215,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
-  // 4. Opportunities / Deals
+  // 1.4 Sales & Conversion — Opportunities & Quotations
   final List<Map<String, dynamic>> _opportunities = [
     {
       'id': 'OPP-301',
@@ -252,7 +255,32 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
-  // 5. Partner Growth & Health
+  final List<Map<String, dynamic>> _quotations = [
+    {
+      'id': 'QT-901',
+      'client': 'Sunil Mittal (Anniversary)',
+      'venue': 'Royal Palms Resort (Poolside)',
+      'services': ['Gourmet BBQ Buffet', 'Fusion Acoustic Band', 'LED Screen'],
+      'amount': 420000,
+      'discount': 25000,
+      'netAmount': 395000,
+      'status': 'SENT',
+      'validUntil': '15 Oct 2026',
+    },
+    {
+      'id': 'QT-902',
+      'client': 'TechNova Solutions',
+      'venue': 'Kuhu Espresso Conference Hall',
+      'services': ['Full Day AV & High Tea', 'Executive Lunch', 'Delegate Kits'],
+      'amount': 210000,
+      'discount': 10000,
+      'netAmount': 200000,
+      'status': 'APPROVED',
+      'validUntil': '20 Oct 2026',
+    },
+  ];
+
+  // 1.5 Partner Growth & Activation Lifecycle
   final List<Map<String, dynamic>> _partners = [
     {
       'code': 'PBV-00124',
@@ -266,7 +294,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
       'reviewsScore': '4.9 ★',
       'responseRate': '98%',
       'expansionOpportunity': 'Add In-House Floral Decor (Est. +₹2.4L/yr)',
-      'lifecycle': 'ACTIVATED',
+      'activationStage': 'ACTIVE & VERIFIED',
     },
     {
       'code': 'PBV-00125',
@@ -280,7 +308,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
       'reviewsScore': '4.8 ★',
       'responseRate': '92%',
       'expansionOpportunity': 'Add Live Barista & Dessert Bar',
-      'lifecycle': 'GROWING',
+      'activationStage': 'ACTIVE & VERIFIED',
     },
     {
       'code': 'PBV-00126',
@@ -294,48 +322,101 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
       'reviewsScore': '4.2 ★',
       'responseRate': '76%',
       'expansionOpportunity': 'Retrain Front Desk & Revamp Lighting Package',
-      'lifecycle': 'AT_RISK',
+      'activationStage': 'KYC VERIFIED (PENDING PRICING)',
     },
   ];
 
-  // 6. Promo Codes
-  final List<Map<String, dynamic>> _promoCodes = [
+  // 1.6 Customer Growth & Reviews
+  final List<Map<String, dynamic>> _customerSegments = [
+    {'name': '💎 High Net Worth Wedding Planners', 'rule': 'Bookings > ₹2.5L in last 90 days', 'count': 142, 'targetAction': 'VIP Concierge Invite'},
+    {'name': '🎉 Repeat Birthday & Anniversary Hosts', 'rule': '2+ events organized with PartyBala', 'count': 380, 'targetAction': '₹1,000 Loyalty Voucher'},
+    {'name': '⏰ Inactive (>180 Days) Dormant Accounts', 'rule': 'No bookings in 6 months', 'count': 820, 'targetAction': 'Diwali Festive Reactivation'},
+    {'name': '🏢 Corporate Procurement Leads', 'rule': 'B2B summit bookings & recurring GST', 'count': 95, 'targetAction': 'Annual Contract Deck'},
+  ];
+
+  final List<Map<String, dynamic>> _reviews = [
     {
-      'code': 'WELCOME500',
-      'discount': '₹ 500 Flat OFF',
-      'minBooking': 5000,
-      'maxDiscount': 500,
-      'usageLimit': '1 per user',
-      'usedCount': 412,
-      'expiry': '31 Dec 2026',
-      'status': 'ACTIVE',
-      'category': 'All Bookings',
+      'id': 'REV-701',
+      'customer': 'Amit Sharma',
+      'event': 'Sharma Grand Wedding Reception',
+      'venue': 'Grand Heritage Banquet',
+      'rating': 5,
+      'comment': 'Flawless execution! The royal floral decor and catering were praised by all 650 guests.',
+      'responseStatus': 'RESPONDED',
+      'date': 'Yesterday',
     },
     {
-      'code': 'ROYALWEDDING',
-      'discount': '10% OFF',
-      'minBooking': 100000,
-      'maxDiscount': 15000,
-      'usageLimit': 'Unlimited',
-      'usedCount': 84,
-      'expiry': '15 Nov 2026',
-      'status': 'ACTIVE',
-      'category': 'Wedding Banquets',
-    },
-    {
-      'code': 'FESTIVE12',
-      'discount': '12% Partner Cashback',
-      'minBooking': 25000,
-      'maxDiscount': 5000,
-      'usageLimit': 'First 100 Bookings',
-      'usedCount': 62,
-      'expiry': '05 Nov 2026',
-      'status': 'ACTIVE',
-      'category': 'Festival Special',
+      'id': 'REV-702',
+      'customer': 'Dr. Alok Srivastava',
+      'event': 'MedCare National Surgeons Conference',
+      'venue': 'Kuhu Espresso Banquet',
+      'rating': 5,
+      'comment': 'High-speed internet and AV setup worked smoothly for the live surgery streaming session.',
+      'responseStatus': 'PENDING_RESPONSE',
+      'date': 'Today, 09:00 AM',
     },
   ];
 
-  // 7. Growth Experiments / A/B Tests
+  // 1.7 Content & Omnichannel Communication
+  final List<Map<String, dynamic>> _templates = [
+    {
+      'id': 'TMP-01',
+      'name': 'WhatsApp Instant Lead Outreach',
+      'channel': 'WhatsApp (Meta Approved)',
+      'content': 'Hi {{client_name}}, thank you for inquiring with PartyBala for {{venue_name}}. Your dedicated manager is {{manager_name}}...',
+      'status': 'APPROVED',
+    },
+    {
+      'id': 'TMP-02',
+      'name': 'Partner Welcome & KYC Kit',
+      'channel': 'Email & WhatsApp',
+      'content': 'Welcome {{partner_name}} to the PartyBala Verified Network! Complete your bank & GST verification here: {{link}}',
+      'status': 'APPROVED',
+    },
+    {
+      'id': 'TMP-03',
+      'name': 'Post-Event Review & Feedback Invitation',
+      'channel': 'WhatsApp & SMS',
+      'content': 'Hi {{client_name}}, how was your event at {{venue_name}}? Share your feedback and get ₹500 cashback: {{review_url}}',
+      'status': 'APPROVED',
+    },
+  ];
+
+  // 1.8 Automation Studio
+  final List<Map<String, dynamic>> _workflows = [
+    {
+      'id': 'WF-01',
+      'name': 'High-Value Lead Instant Routing',
+      'trigger': 'New Lead Created with Score >= 70',
+      'actions': 'Assign Senior Executive → Send SMS & WhatsApp → Create Call Task (SLA 30m)',
+      'status': 'ACTIVE',
+      'runsThisMonth': 342,
+    },
+    {
+      'id': 'WF-02',
+      'name': 'Post-Visit Automated Follow-Up Matrix',
+      'trigger': 'Field Visit Marked Completed',
+      'actions': 'Day 1: WhatsApp Brochure → Day 3: Call Task → Day 7: Manager Escalation',
+      'status': 'ACTIVE',
+      'runsThisMonth': 188,
+    },
+    {
+      'id': 'WF-03',
+      'name': 'Partner Inactivity Alert & Reactivation',
+      'trigger': 'No Bookings in 30 Days for Active Banquet',
+      'actions': 'Notify Marketing Lead → Auto-schedule Account Review Visit',
+      'status': 'ACTIVE',
+      'runsThisMonth': 14,
+    },
+  ];
+
+  // 1.9 Growth Strategy & Goals
+  final List<Map<String, dynamic>> _goals = [
+    {'title': 'Monthly Partner Acquisition (Banquets)', 'target': 100, 'current': 78, 'unit': 'Partners', 'deadline': '31 Oct 2026', 'status': 'ON_TRACK'},
+    {'title': 'Monthly Attributed Gross Revenue', 'target': 3500000, 'current': 2480000, 'unit': '₹ INR', 'deadline': '31 Oct 2026', 'status': 'ON_TRACK'},
+    {'title': 'Direct Customer Lead Conversion', 'target': 30, 'current': 24.6, 'unit': '% Rate', 'deadline': '31 Oct 2026', 'status': 'NEEDS_ATTENTION'},
+  ];
+
   final List<Map<String, dynamic>> _experiments = [
     {
       'id': 'EXP-024',
@@ -365,7 +446,6 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
-  // 8. Competitor Tracking
   final List<Map<String, dynamic>> _competitors = [
     {
       'name': 'WedMeGood Local Kanpur',
@@ -387,42 +467,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
-  // 9. Lead Scoring Rules
-  final List<Map<String, dynamic>> _scoringRules = [
-    {'criterion': 'Phone Contact Number Verified via OTP / Call', 'points': 20, 'category': 'Verification', 'enabled': true},
-    {'criterion': 'Expressed Direct Interest in Booking Date', 'points': 15, 'category': 'Intent', 'enabled': true},
-    {'criterion': 'On-Site Field Visit & Venue Audit Completed', 'points': 20, 'category': 'Engagement', 'enabled': true},
-    {'criterion': 'Budget Confirmed > ₹ 2.5 Lakhs', 'points': 15, 'category': 'Budget', 'enabled': true},
-    {'criterion': 'Direct Decision Maker Engaged (Owner/Host)', 'points': 20, 'category': 'Authority', 'enabled': true},
-    {'criterion': 'Follow-up Response within 2 Hours', 'points': 10, 'category': 'Responsiveness', 'enabled': true},
-  ];
-
-  // 10. Automated Workflows
-  final List<Map<String, dynamic>> _workflows = [
-    {
-      'name': 'High-Value Lead Instant Routing',
-      'trigger': 'New Lead Created with Score >= 70',
-      'actions': 'Assign Senior Executive → Send SMS & WhatsApp → Create Call Task (SLA 30m)',
-      'status': 'ACTIVE',
-      'runsThisMonth': 342,
-    },
-    {
-      'name': 'Post-Visit Automated Follow-Up Matrix',
-      'trigger': 'Field Visit Marked Completed',
-      'actions': 'Day 1: WhatsApp Brochure → Day 3: Call Task → Day 7: Manager Escalation',
-      'status': 'ACTIVE',
-      'runsThisMonth': 188,
-    },
-    {
-      'name': 'Partner Inactivity Alert & Reactivation',
-      'trigger': 'No Bookings in 30 Days for Active Banquet',
-      'actions': 'Notify Marketing Lead → Auto-schedule Account Review Visit',
-      'status': 'ACTIVE',
-      'runsThisMonth': 14,
-    },
-  ];
-
-  // 11. Admin Approvals Gate
+  // 1.10 Approvals & Settings
   final List<Map<String, dynamic>> _approvals = [
     {
       'id': 'APP-MKT-101',
@@ -456,6 +501,40 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     },
   ];
 
+  final List<Map<String, dynamic>> _scoringRules = [
+    {'criterion': 'Phone Contact Number Verified via OTP / Call', 'points': 20, 'category': 'Verification', 'enabled': true},
+    {'criterion': 'Expressed Direct Interest in Booking Date', 'points': 15, 'category': 'Intent', 'enabled': true},
+    {'criterion': 'On-Site Field Visit & Venue Audit Completed', 'points': 20, 'category': 'Engagement', 'enabled': true},
+    {'criterion': 'Budget Confirmed > ₹ 2.5 Lakhs', 'points': 15, 'category': 'Budget', 'enabled': true},
+    {'criterion': 'Direct Decision Maker Engaged (Owner/Host)', 'points': 20, 'category': 'Authority', 'enabled': true},
+    {'criterion': 'Follow-up Response within 2 Hours', 'points': 10, 'category': 'Responsiveness', 'enabled': true},
+  ];
+
+  final List<Map<String, dynamic>> _promoCodes = [
+    {
+      'code': 'WELCOME500',
+      'discount': '₹ 500 Flat OFF',
+      'minBooking': 5000,
+      'maxDiscount': 500,
+      'usageLimit': '1 per user',
+      'usedCount': 412,
+      'expiry': '31 Dec 2026',
+      'status': 'ACTIVE',
+      'category': 'All Bookings',
+    },
+    {
+      'code': 'ROYALWEDDING',
+      'discount': '10% OFF',
+      'minBooking': 100000,
+      'maxDiscount': 15000,
+      'usageLimit': 'Unlimited',
+      'usedCount': 84,
+      'expiry': '15 Nov 2026',
+      'status': 'ACTIVE',
+      'category': 'Wedding Banquets',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -474,10 +553,89 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     super.dispose();
   }
 
-  // ---------------------------------------------------------------------------
-  // CRUD DIALOGS & ACTIONS
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 2. COMPLETE CRUD MODALS & ACTION DIALOGS
+  // ===========================================================================
 
+  // 2.1 Quick Actions Bottom Sheet
+  void _showMarketingQuickActions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.bolt_rounded, color: Color(0xFF2563EB), size: 24),
+                SizedBox(width: 8),
+                Text('Growth & CRM Quick Action Hub', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildQuickActionBtn('Add Lead', Icons.person_add_alt_1_rounded, const Color(0xFF2563EB), () {
+                  Navigator.pop(ctx);
+                  _showCreateLeadDialog();
+                }),
+                _buildQuickActionBtn('Launch Campaign', Icons.campaign_rounded, const Color(0xFF10B981), () {
+                  Navigator.pop(ctx);
+                  _showCreateCampaignDialog();
+                }),
+                _buildQuickActionBtn('New Deal', Icons.insights_rounded, const Color(0xFF8B5CF6), () {
+                  Navigator.pop(ctx);
+                  _showCreateOpportunityDialog();
+                }),
+                _buildQuickActionBtn('Create Quote', Icons.request_quote_rounded, const Color(0xFFD97706), () {
+                  Navigator.pop(ctx);
+                  _showCreateQuotationDialog();
+                }),
+                _buildQuickActionBtn('Onboard Partner', Icons.handshake_rounded, const Color(0xFF0891B2), () {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PartnerOnboardingScreen()));
+                }),
+                _buildQuickActionBtn('New Promo Code', Icons.local_offer_rounded, const Color(0xFFE11D48), () {
+                  Navigator.pop(ctx);
+                  _showCreatePromoDialog();
+                }),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionBtn(String title, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 6),
+            Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 2.2 Create / Edit Lead Dialog
   void _showCreateLeadDialog({Map<String, dynamic>? editLead}) {
     final businessCtrl = TextEditingController(text: editLead?['business'] ?? '');
     final contactCtrl = TextEditingController(text: editLead?['contact'] ?? '');
@@ -740,6 +898,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
+  // 2.3 Create / Edit Campaign Dialog
   void _showCreateCampaignDialog({Map<String, dynamic>? editCampaign}) {
     final nameCtrl = TextEditingController(text: editCampaign?['name'] ?? '');
     final budgetCtrl = TextEditingController(text: editCampaign != null ? editCampaign['budget'].toString() : '100000');
@@ -896,6 +1055,169 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
+  // 2.4 Create Opportunity / Deal Dialog
+  void _showCreateOpportunityDialog() {
+    final titleCtrl = TextEditingController();
+    final businessCtrl = TextEditingController(text: 'Grand Heritage Banquet');
+    final contactCtrl = TextEditingController(text: 'Rajesh Sharma');
+    final valueCtrl = TextEditingController(text: '500000');
+    final closeDateCtrl = TextEditingController(text: '25 Oct 2026');
+    String stage = 'Qualification';
+    double prob = 0.50;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.insights_rounded, color: Color(0xFF8B5CF6)),
+              SizedBox(width: 8),
+              Text('Create Sales Deal / Opportunity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleCtrl,
+                  decoration: InputDecoration(labelText: 'Deal Title *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: businessCtrl, decoration: InputDecoration(labelText: 'Business Account *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))))),
+                    const SizedBox(width: 10),
+                    Expanded(child: TextField(controller: contactCtrl, decoration: InputDecoration(labelText: 'Contact Person *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))))),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: valueCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Deal Value (₹) *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))))),
+                    const SizedBox(width: 10),
+                    Expanded(child: TextField(controller: closeDateCtrl, decoration: InputDecoration(labelText: 'Target Close Date', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))))),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: stage,
+                  decoration: InputDecoration(labelText: 'Pipeline Stage', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                  items: const [
+                    DropdownMenuItem(value: 'Qualification', child: Text('Qualification (20%)')),
+                    DropdownMenuItem(value: 'Proposal Sent', child: Text('Proposal Sent (60%)')),
+                    DropdownMenuItem(value: 'Negotiation', child: Text('Negotiation (80%)')),
+                    DropdownMenuItem(value: 'Closed Won', child: Text('Closed Won (100%)')),
+                    DropdownMenuItem(value: 'Closed Lost', child: Text('Closed Lost (0%)')),
+                  ],
+                  onChanged: (v) => setDialogState(() => stage = v ?? 'Qualification'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white),
+              onPressed: () {
+                if (titleCtrl.text.trim().isEmpty) return;
+                setState(() {
+                  _opportunities.insert(0, {
+                    'id': 'OPP-${_opportunities.length + 304}',
+                    'title': titleCtrl.text.trim(),
+                    'business': businessCtrl.text.trim(),
+                    'contact': contactCtrl.text.trim(),
+                    'stage': stage,
+                    'value': int.tryParse(valueCtrl.text.trim()) ?? 300000,
+                    'probability': stage == 'Closed Won' ? 1.0 : stage == 'Negotiation' ? 0.8 : 0.5,
+                    'expectedClose': closeDateCtrl.text.trim(),
+                    'owner': 'Rohan Gupta',
+                    'pipeline': 'Enterprise Growth Pipeline',
+                  });
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ Deal created in Sales Pipeline!'), backgroundColor: AppTheme.success));
+              },
+              child: const Text('Create Opportunity'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 2.5 Create Quotation Dialog
+  void _showCreateQuotationDialog() {
+    final clientCtrl = TextEditingController();
+    final venueCtrl = TextEditingController(text: 'Grand Heritage Banquet');
+    final amountCtrl = TextEditingController(text: '350000');
+    final discountCtrl = TextEditingController(text: '15000');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.request_quote_rounded, color: Color(0xFFD97706)),
+            SizedBox(width: 8),
+            Text('Generate Formal Quotation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: clientCtrl, decoration: InputDecoration(labelText: 'Client / Event Name *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
+              const SizedBox(height: 10),
+              TextField(controller: venueCtrl, decoration: InputDecoration(labelText: 'Proposed Venue & Packages *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(child: TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Gross Amount (₹) *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))))),
+                  const SizedBox(width: 10),
+                  Expanded(child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Approved Discount (₹)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))))),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white),
+            onPressed: () {
+              if (clientCtrl.text.trim().isEmpty) return;
+              final gross = int.tryParse(amountCtrl.text.trim()) ?? 300000;
+              final disc = int.tryParse(discountCtrl.text.trim()) ?? 0;
+              setState(() {
+                _quotations.insert(0, {
+                  'id': 'QT-${_quotations.length + 903}',
+                  'client': clientCtrl.text.trim(),
+                  'venue': venueCtrl.text.trim(),
+                  'services': ['Banquet Space', 'Custom Decor', 'Turnkey Catering'],
+                  'amount': gross,
+                  'discount': disc,
+                  'netAmount': gross - disc,
+                  'status': 'SENT',
+                  'validUntil': '30 Oct 2026',
+                });
+              });
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ Formal quotation generated and dispatched via WhatsApp!'), backgroundColor: AppTheme.success));
+            },
+            child: const Text('Generate Quote'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 2.6 Create Promo Code Dialog
   void _showCreatePromoDialog() {
     final codeCtrl = TextEditingController();
     final discountCtrl = TextEditingController(text: '₹ 1,000 Flat OFF');
@@ -986,9 +1308,9 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // MAIN BUILD METHOD
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 3. MAIN BUILD METHOD
+  // ===========================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -1009,6 +1331,11 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.bolt_rounded, color: Color(0xFF2563EB)),
+            tooltip: 'Quick Actions Hub',
+            onPressed: _showMarketingQuickActions,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF334155)),
             tooltip: 'Refresh Growth Engine',
             onPressed: () => setState(() {}),
@@ -1023,47 +1350,26 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
           indicatorWeight: 3,
           labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
           tabs: const [
-            Tab(icon: Icon(Icons.dashboard_customize_rounded, size: 18), text: '📊 Growth Dashboard'),
+            Tab(icon: Icon(Icons.dashboard_customize_rounded, size: 18), text: '📊 Dashboard'),
             Tab(icon: Icon(Icons.person_search_rounded, size: 18), text: '👥 CRM & Leads'),
-            Tab(icon: Icon(Icons.campaign_rounded, size: 18), text: '🚀 Campaigns & Acquisition'),
-            Tab(icon: Icon(Icons.insights_rounded, size: 18), text: '💼 Sales & Pipelines'),
+            Tab(icon: Icon(Icons.campaign_rounded, size: 18), text: '🚀 Campaigns'),
+            Tab(icon: Icon(Icons.insights_rounded, size: 18), text: '💼 Sales & Deals'),
             Tab(icon: Icon(Icons.handshake_rounded, size: 18), text: '🤝 Partner Growth'),
             Tab(icon: Icon(Icons.groups_rounded, size: 18), text: '📈 Customer Growth'),
             Tab(icon: Icon(Icons.mark_email_read_rounded, size: 18), text: '✍️ Content & Comms'),
             Tab(icon: Icon(Icons.account_tree_rounded, size: 18), text: '⚡ Automation Studio'),
-            Tab(icon: Icon(Icons.science_rounded, size: 18), text: '🎯 Strategy & Experiments'),
-            Tab(icon: Icon(Icons.monetization_on_rounded, size: 18), text: '💰 Revenue Attribution'),
+            Tab(icon: Icon(Icons.science_rounded, size: 18), text: '🎯 Strategy & Goals'),
+            Tab(icon: Icon(Icons.monetization_on_rounded, size: 18), text: '💰 Attribution'),
             Tab(icon: Icon(Icons.verified_user_rounded, size: 18), text: '🛡️ Approvals & Rules'),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (_currentSection == 0 || _currentSection == 1 || _currentSection == 3) {
-            _showCreateLeadDialog();
-          } else if (_currentSection == 2) {
-            _showCreateCampaignDialog();
-          } else if (_currentSection == 4) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const PartnerOnboardingScreen()));
-          } else if (_currentSection == 8) {
-            _showCreatePromoDialog();
-          } else {
-            _showCreateLeadDialog();
-          }
-        },
+        onPressed: _showMarketingQuickActions,
         backgroundColor: const Color(0xFF2563EB),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: Text(
-          _currentSection == 2
-              ? '+ New Campaign'
-              : _currentSection == 4
-                  ? '+ Onboard Partner'
-                  : _currentSection == 8
-                      ? '+ New Promo Code'
-                      : '+ Create Lead / Deal',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        label: const Text('+ Growth Action', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -1085,8 +1391,10 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
   }
 
   // ===========================================================================
-  // 1. 📊 GROWTH DASHBOARD
+  // 4. TAB IMPLEMENTATIONS
   // ===========================================================================
+
+  // 4.1 📊 GROWTH DASHBOARD
   Widget _buildGrowthDashboardTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1170,11 +1478,10 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 2. 👥 CRM & LEADS (LIST, KANBAN, 360°)
-  // ===========================================================================
+  // 4.2 👥 CRM & LEADS
   Widget _buildCrmHubTab() {
     final filtered = _leads.where((l) {
+      if (_leadStageFilter != 'ALL' && l['stage'] != _leadStageFilter) return false;
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         return l['business'].toString().toLowerCase().contains(q) ||
@@ -1187,7 +1494,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        // Top CRM Action Bar
+        // Top Action Bar
         Row(
           children: [
             Expanded(
@@ -1216,6 +1523,24 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
               label: const Text('+ Add Lead'),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+
+        // Stage Filter Chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: ['ALL', 'New', 'Contacted', 'Qualified', 'Visit Scheduled', 'Negotiation', 'Active'].map((st) => Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(st, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _leadStageFilter == st ? Colors.white : const Color(0xFF334155))),
+                selected: _leadStageFilter == st,
+                selectedColor: const Color(0xFF2563EB),
+                backgroundColor: Colors.white,
+                onSelected: (v) => setState(() => _leadStageFilter = st),
+              ),
+            )).toList(),
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -1335,9 +1660,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 3. 🚀 CAMPAIGNS & ACQUISITION
-  // ===========================================================================
+  // 4.3 🚀 CAMPAIGNS & ACQUISITION
   Widget _buildAcquisitionTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1392,7 +1715,18 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
         ),
         const SizedBox(height: 16),
 
-        const Text('ACTIVE MULTI-CHANNEL CAMPAIGNS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('ACTIVE MULTI-CHANNEL CAMPAIGNS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
+              onPressed: _showCreateCampaignDialog,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ New Campaign'),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
 
         ..._campaigns.map((cmp) {
@@ -1466,14 +1800,23 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 4. 💼 SALES & PIPELINES
-  // ===========================================================================
+  // 4.4 💼 SALES & PIPELINES
   Widget _buildSalesPipelinesTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        const Text('ACTIVE SALES PIPELINE & DEALS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('ACTIVE SALES PIPELINES & DEALS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white),
+              onPressed: _showCreateOpportunityDialog,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ New Deal'),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
 
         ..._opportunities.map((opp) {
@@ -1542,13 +1885,41 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
             ),
           );
         }),
+
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('GENERATED PROPOSALS & QUOTATIONS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            TextButton.icon(
+              onPressed: _showCreateQuotationDialog,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ New Quote'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ..._quotations.map((qt) => Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
+          color: Colors.white,
+          child: ListTile(
+            leading: const CircleAvatar(backgroundColor: Color(0xFFFEF3C7), child: Icon(Icons.request_quote_rounded, color: Color(0xFFD97706))),
+            title: Text('${qt['id']} - ${qt['client']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+            subtitle: Text('Venue: ${qt['venue']} • Net: ₹ ${qt['netAmount']} (Discount: ₹ ${qt['discount']})'),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+              child: Text(qt['status'], style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 11)),
+            ),
+          ),
+        )),
       ],
     );
   }
 
-  // ===========================================================================
-  // 5. 🤝 PARTNER GROWTH & EXPANSION
-  // ===========================================================================
+  // 4.5 🤝 PARTNER GROWTH
   Widget _buildPartnerGrowthTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1633,9 +2004,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 6. 📈 CUSTOMER GROWTH
-  // ===========================================================================
+  // 4.6 📈 CUSTOMER GROWTH
   Widget _buildCustomerGrowthTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1652,35 +2021,55 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
             children: [
               const Text('DYNAMIC CUSTOMER SEGMENTS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
               const SizedBox(height: 12),
-              _buildSegmentItem('💎 High Net Worth Wedding Planners', 'Bookings > ₹2.5L in last 90 days', '142 Customers'),
-              _buildSegmentItem('🎉 Repeat Birthday & Anniversary Hosts', '2+ events organized with PartyBala', '380 Customers'),
-              _buildSegmentItem('⏰ Inactive (>180 Days) Dormant Accounts', 'Target for Diwali reactivations', '820 Customers'),
+              ..._customerSegments.map((seg) => _buildSegmentItem(seg['name'], seg['rule'], '${seg['count']} Users')),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        const Text('CUSTOMER REVIEWS & POST-EVENT FEEDBACK', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        const SizedBox(height: 10),
+        ..._reviews.map((rev) => Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${rev['customer']} • ${rev['date']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                    const Text('⭐⭐⭐⭐⭐', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text('Event: ${rev['event']} (${rev['venue']})', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                const SizedBox(height: 6),
+                Text('"${rev['comment']}"', style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Color(0xFF1E293B))),
+              ],
+            ),
+          ),
+        )),
       ],
     );
   }
 
-  // ===========================================================================
-  // 7. ✍️ CONTENT & COMMS
-  // ===========================================================================
+  // 4.7 ✍️ CONTENT & COMMS
   Widget _buildContentCommsTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
         const Text('OMNICHANNEL TEMPLATES & ASSETS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
         const SizedBox(height: 10),
-        _buildTemplateCard('WhatsApp Lead Quick Connect', 'Hi {{client_name}}, thank you for inquiring with PartyBala for {{venue_name}}...'),
-        _buildTemplateCard('Partner Onboarding Welcome Kit', 'Welcome to the PartyBala Enterprise Network! Your partner dashboard is ready at...'),
-        _buildTemplateCard('Review & Feedback Invitation', 'Hi {{client_name}}, how was your wedding reception at {{venue_name}}? Share your review...'),
+        ..._templates.map((tmp) => _buildTemplateCard(tmp['name'], tmp['content'], tmp['channel'])),
       ],
     );
   }
 
-  // ===========================================================================
-  // 8. ⚡ AUTOMATION STUDIO
-  // ===========================================================================
+  // 4.8 ⚡ AUTOMATION STUDIO
   Widget _buildAutomationStudioTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1722,13 +2111,50 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 9. 🎯 STRATEGY & EXPERIMENTS
-  // ===========================================================================
+  // 4.9 🎯 STRATEGY & GOALS
   Widget _buildStrategyExperimentsTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
+        const Text('GROWTH GOALS & TARGETS (KPI RADAR)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        const SizedBox(height: 10),
+        ..._goals.map((g) {
+          final double pct = (g['current'] as num) / (g['target'] as num);
+
+          return Card(
+            elevation: 0,
+            margin: const EdgeInsets.only(bottom: 10),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(g['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                      Text('${g['current']} / ${g['target']} ${g['unit']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF2563EB))),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: pct.clamp(0.0, 1.0),
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFFF1F5F9),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+
+        const SizedBox(height: 16),
         const Text('A/B TESTS & GROWTH EXPERIMENTS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
         const SizedBox(height: 10),
 
@@ -1796,9 +2222,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 10. 💰 REVENUE ATTRIBUTION
-  // ===========================================================================
+  // 4.10 💰 REVENUE ATTRIBUTION
   Widget _buildRevenueAttributionTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1839,9 +2263,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ===========================================================================
-  // 11. 🛡️ APPROVALS & RULES
-  // ===========================================================================
+  // 4.11 🛡️ APPROVALS & RULES
   Widget _buildApprovalsRulesTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1953,9 +2375,9 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // HELPER WIDGETS
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 5. HELPER WIDGETS
+  // ===========================================================================
 
   Widget _buildAlertItem(String title, String subtitle) {
     return Padding(
@@ -2059,7 +2481,7 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
     );
   }
 
-  Widget _buildTemplateCard(String title, String body) {
+  Widget _buildTemplateCard(String title, String body, String channel) {
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 10),
@@ -2067,7 +2489,8 @@ class _AdminMarketingGrowthScreenState extends State<AdminMarketingGrowthScreen>
       color: Colors.white,
       child: ListTile(
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(body, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+        subtitle: Text('Channel: $channel\n$body', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+        isThreeLine: true,
         trailing: const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF2563EB)),
       ),
     );
