@@ -17,19 +17,20 @@ class AdminOperationsEventsScreen extends StatefulWidget {
   State<AdminOperationsEventsScreen> createState() => _AdminOperationsEventsScreenState();
 }
 
-class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScreen> with SingleTickerProviderStateMixin {
+class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScreen>
+    with SingleTickerProviderStateMixin {
   final ApiClient _api = ApiClient();
   late TabController _tabController;
   int _currentSection = 0;
   String _searchQuery = '';
-  String _bookingFilter = 'ALL';
-  String _eventFilter = 'ALL';
+  String _statusFilter = 'ALL';
+  String _selectedDateRange = 'Today';
 
-  // ---------------------------------------------------------------------------
-  // STATE STORE FOR ALL OPERATIONS & EVENTS ENTITIES (FULL CRUD)
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 1. DATA STORE (COMPREHENSIVE CRUD ENTITIES)
+  // ===========================================================================
 
-  // 1. Bookings
+  // 1.1 Bookings
   final List<Map<String, dynamic>> _bookings = [
     {
       'id': 'PB-10482',
@@ -40,7 +41,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'eventType': 'Wedding Reception',
       'date': '18 Oct 2026',
       'time': '06:30 PM - 11:30 PM',
-      'venue': 'Grand Heritage Banquet (Crystal Ballroom + Lawn)',
+      'venue': 'Grand Heritage Banquet',
+      'space': 'Crystal Ballroom + Grand Lawn',
       'guestCount': 650,
       'services': ['Banquet Hall', 'Royal Catering (Package A)', 'Luxury Floral Decor', 'Candid Photography'],
       'package': 'Royal Grand Wedding Platinum',
@@ -55,6 +57,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'decorCoordinator': 'Neha Sharma',
       'specialRequests': 'VIP stage floral canopy, strict Jain food counter #4, ramp access for elderly guests',
       'issuesCount': 0,
+      'createdDate': '01 Oct 2026',
+      'source': 'Marketing Campaign',
     },
     {
       'id': 'PB-10483',
@@ -65,7 +69,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'eventType': 'Anniversary Gala',
       'date': '19 Oct 2026',
       'time': '07:00 PM - 12:00 AM',
-      'venue': 'Royal Palms Resort (Poolside Deck + Banquet)',
+      'venue': 'Royal Palms Resort',
+      'space': 'Poolside Deck + Banquet Hall',
       'guestCount': 350,
       'services': ['Poolside Deck', 'Gourmet Barbeque & Buffet', 'Live Fusion Acoustic Band', 'LED Screen Setup'],
       'package': 'Silver Jubilee Premium Gala',
@@ -80,6 +85,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'decorCoordinator': 'Akarshan Mishra',
       'specialRequests': 'Live barista coffee counter, customized photo backdrop with 1999-2024 memorabilia',
       'issuesCount': 1,
+      'createdDate': '03 Oct 2026',
+      'source': 'Partner Referral',
     },
     {
       'id': 'PB-10484',
@@ -90,7 +97,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'eventType': 'Corporate Conference',
       'date': '20 Oct 2026',
       'time': '09:00 AM - 05:00 PM',
-      'venue': 'Kuhu Espresso Banquet (Executive Conference Hall)',
+      'venue': 'Kuhu Espresso Banquet',
+      'space': 'Executive Conference Hall',
       'guestCount': 200,
       'services': ['Conference Hall', 'AV Projection & Podiums', 'Executive High Tea & Lunch', 'Delegate Kits'],
       'package': 'Corporate Summit Full-Day',
@@ -105,6 +113,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'decorCoordinator': 'Self-Managed',
       'specialRequests': 'High-speed 100Mbps dedicated WiFi SSID for live surgical video streaming',
       'issuesCount': 0,
+      'createdDate': '04 Oct 2026',
+      'source': 'Website Direct',
     },
     {
       'id': 'PB-10485',
@@ -115,7 +125,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'eventType': 'Birthday Party',
       'date': '21 Oct 2026',
       'time': '05:00 PM - 09:30 PM',
-      'venue': 'Grand Heritage Banquet (Mini Party Hall)',
+      'venue': 'Grand Heritage Banquet',
+      'space': 'Mini Party Hall',
       'guestCount': 120,
       'services': ['Mini Party Hall', 'Jungle Safari Balloon Theme', 'Kids Snack Buffet & Live Waffle Station', 'Magician & Mascot'],
       'package': 'Kids Wonderland Fiesta',
@@ -130,17 +141,21 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'decorCoordinator': 'Neha Sharma',
       'specialRequests': 'Eggless customized 3-tier Lion King cake delivery at 06:00 PM sharp',
       'issuesCount': 2,
+      'createdDate': '05 Oct 2026',
+      'source': 'Customer App',
     },
   ];
 
-  // 2. Events & 360° Lifecycle
+  // 1.2 Events & Operational Run Sheets
   final List<Map<String, dynamic>> _events = [
     {
       'id': 'EVT-000124',
       'bookingId': 'PB-10482',
       'title': 'Sharma Grand Wedding Reception',
       'venue': 'Grand Heritage Banquet',
-      'date': 'Tomorrow (18 Oct 2026)',
+      'space': 'Crystal Ballroom + Grand Lawn',
+      'date': '18 Oct 2026',
+      'time': '06:30 PM - 11:30 PM',
       'status': 'READY',
       'readiness': 0.96,
       'manager': 'Kavita Nair',
@@ -163,7 +178,9 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'bookingId': 'PB-10483',
       'title': 'Mittal 25th Silver Jubilee Anniversary',
       'venue': 'Royal Palms Resort',
+      'space': 'Poolside Deck + Banquet Hall',
       'date': '19 Oct 2026',
+      'time': '07:00 PM - 12:00 AM',
       'status': 'PREPARATION',
       'readiness': 0.72,
       'manager': 'Kavita Nair',
@@ -182,7 +199,9 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
       'bookingId': 'PB-10485',
       'title': 'Aarav 1st Birthday Wonderland',
       'venue': 'Grand Heritage Banquet',
+      'space': 'Mini Party Hall',
       'date': '21 Oct 2026',
+      'time': '05:00 PM - 09:30 PM',
       'status': 'AT_RISK',
       'readiness': 0.45,
       'manager': 'Kavita Nair',
@@ -197,7 +216,116 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     },
   ];
 
-  // 3. Operational Issues & Complaints with SLA
+  // 1.3 Event Types Catalog
+  final List<Map<String, dynamic>> _eventTypes = [
+    {'name': 'Wedding Reception', 'icon': Icons.favorite_rounded, 'color': Color(0xFFE11D48), 'activeCount': 24, 'defaultSLA': '48h', 'checklistItems': 22},
+    {'name': 'Corporate Summit', 'icon': Icons.business_center_rounded, 'color': Color(0xFF2563EB), 'activeCount': 12, 'defaultSLA': '24h', 'checklistItems': 16},
+    {'name': 'Anniversary Gala', 'icon': Icons.celebration_rounded, 'color': Color(0xFFD97706), 'activeCount': 8, 'defaultSLA': '36h', 'checklistItems': 18},
+    {'name': 'Birthday Party', 'icon': Icons.cake_rounded, 'color': Color(0xFF10B981), 'activeCount': 15, 'defaultSLA': '24h', 'checklistItems': 14},
+    {'name': 'Engagement Ceremony', 'icon': Icons.diamond_rounded, 'color': Color(0xFF8B5CF6), 'activeCount': 6, 'defaultSLA': '36h', 'checklistItems': 18},
+    {'name': 'Exhibition & Fair', 'icon': Icons.storefront_rounded, 'color': Color(0xFF0891B2), 'activeCount': 4, 'defaultSLA': '72h', 'checklistItems': 25},
+  ];
+
+  // 1.4 Venues & Spaces
+  final List<Map<String, dynamic>> _venues = [
+    {
+      'id': 'VEN-101',
+      'name': 'Grand Heritage Banquet',
+      'type': 'Luxury Banquet & Lawns',
+      'location': 'Civil Lines, Kanpur',
+      'totalCapacity': 1200,
+      'status': 'ACTIVE',
+      'partnerName': 'Heritage Hospitality Ltd.',
+      'spaces': [
+        {'name': 'Crystal Ballroom', 'capacity': 600, 'pricePerDay': 250000, 'status': 'OCCUPIED'},
+        {'name': 'Grand Imperial Lawn', 'capacity': 800, 'pricePerDay': 300000, 'status': 'OCCUPIED'},
+        {'name': 'Mini Party Hall', 'capacity': 150, 'pricePerDay': 60000, 'status': 'AVAILABLE'},
+        {'name': 'Executive Boardroom', 'capacity': 50, 'pricePerDay': 25000, 'status': 'AVAILABLE'},
+      ],
+      'amenities': ['Central AC', '62.5 kVA GenSet', 'Valet Parking (250 Cars)', 'Bridal Suites (4)', 'Commercial Kitchen'],
+      'activeBookings': 8,
+    },
+    {
+      'id': 'VEN-102',
+      'name': 'Royal Palms Resort',
+      'type': 'Resort & Open Deck',
+      'location': 'Bithoor Road, Kanpur',
+      'totalCapacity': 850,
+      'status': 'ACTIVE',
+      'partnerName': 'Royal Palms Leisure Group',
+      'spaces': [
+        {'name': 'Poolside Deck & Gazebo', 'capacity': 350, 'pricePerDay': 180000, 'status': 'OCCUPIED'},
+        {'name': 'Emerald Lawn', 'capacity': 600, 'pricePerDay': 220000, 'status': 'AVAILABLE'},
+        {'name': 'Indoor Banquet Hall', 'capacity': 250, 'pricePerDay': 120000, 'status': 'AVAILABLE'},
+      ],
+      'amenities': ['Swimming Pool', 'Lush Lawns', 'Cottages (12)', 'Barbeque Island', 'Full Power Backup'],
+      'activeBookings': 5,
+    },
+    {
+      'id': 'VEN-103',
+      'name': 'Kuhu Espresso Banquet',
+      'type': 'Executive Urban Venue',
+      'location': 'Swaroop Nagar, Kanpur',
+      'totalCapacity': 300,
+      'status': 'ACTIVE',
+      'partnerName': 'Kuhu Cafes & Banquets',
+      'spaces': [
+        {'name': 'Executive Conference Hall', 'capacity': 200, 'pricePerDay': 90000, 'status': 'AVAILABLE'},
+        {'name': 'Rooftop Lounge', 'capacity': 100, 'pricePerDay': 55000, 'status': 'AVAILABLE'},
+      ],
+      'amenities': ['High-Speed WiFi', 'Laser Projectors', 'Artisan Coffee Bar', 'Acoustic Soundproofing'],
+      'activeBookings': 3,
+    },
+  ];
+
+  // 1.5 Vendors & Partners
+  final List<Map<String, dynamic>> _vendors = [
+    {
+      'id': 'VND-301',
+      'business': 'Royal Flavors Catering Services',
+      'category': 'Catering & Hospitality',
+      'contact': 'Suresh Pal (+91 98390 55443)',
+      'rating': 4.9,
+      'kycStatus': 'VERIFIED',
+      'readinessScore': 98,
+      'activeEvents': 6,
+      'services': ['Awadhi Buffet', 'Live Chaat & Barbeque', 'Artisan Desserts', 'High Tea'],
+    },
+    {
+      'id': 'VND-302',
+      'business': 'Bliss Floral & Theme Decors',
+      'category': 'Decoration & Staging',
+      'contact': 'Neha Sharma (+91 94150 77665)',
+      'rating': 4.8,
+      'kycStatus': 'VERIFIED',
+      'readinessScore': 94,
+      'activeEvents': 4,
+      'services': ['Exotic Floral Mandap', 'LED Truss & Ambience', 'Theme Backdrops'],
+    },
+    {
+      'id': 'VND-303',
+      'business': 'SoundTech Live Audio Visuals',
+      'category': 'Audio / Visual & Tech',
+      'contact': 'Vikram Sethi (+91 97920 33221)',
+      'rating': 4.7,
+      'kycStatus': 'VERIFIED',
+      'readinessScore': 90,
+      'activeEvents': 3,
+      'services': ['JBL Line Arrays', 'P3 LED Video Walls', 'Moving Beam Lights', 'Silent GenSets'],
+    },
+  ];
+
+  // 1.6 Service Catalog
+  final List<Map<String, dynamic>> _services = [
+    {'name': 'Gourmet Catering', 'category': 'Food & Beverage', 'sla': '6 Hours Setup', 'status': 'ACTIVE', 'providers': 5, 'baseRate': '₹ 850 / Plate'},
+    {'name': 'Theme Floral Decor', 'category': 'Decoration', 'sla': '8 Hours Setup', 'status': 'ACTIVE', 'providers': 4, 'baseRate': '₹ 45,000 / Setup'},
+    {'name': 'Line Array Audio & AV', 'category': 'Production', 'sla': '4 Hours Setup', 'status': 'ACTIVE', 'providers': 3, 'baseRate': '₹ 35,000 / Rig'},
+    {'name': 'Candid & Cinematic Photo/Video', 'category': 'Media', 'sla': '2 Hours Arrival', 'status': 'ACTIVE', 'providers': 6, 'baseRate': '₹ 50,000 / Event'},
+    {'name': 'Security & Valet Parking Team', 'category': 'Logistics', 'sla': '2 Hours Before', 'status': 'ACTIVE', 'providers': 4, 'baseRate': '₹ 15,000 / Team'},
+    {'name': 'Live Fusion Band & DJ Rig', 'category': 'Entertainment', 'sla': '3 Hours Soundcheck', 'status': 'ACTIVE', 'providers': 4, 'baseRate': '₹ 40,000 / Performance'},
+  ];
+
+  // 1.7 Operational Issues & Complaints with SLA
   final List<Map<String, dynamic>> _issues = [
     {
       'id': 'ISS-901',
@@ -246,7 +374,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     },
   ];
 
-  // 4. Resources & Equipment Inventory
+  // 1.8 Resources & Equipment Inventory
   final List<Map<String, dynamic>> _resources = [
     {
       'id': 'RES-401',
@@ -290,7 +418,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     },
   ];
 
-  // 5. Logistics & Fleet Dispatch
+  // 1.9 Logistics & Fleet Dispatch
   final List<Map<String, dynamic>> _logistics = [
     {
       'id': 'LOG-701',
@@ -318,7 +446,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     },
   ];
 
-  // 6. Quality Control Checks (Pass / Fail Matrix)
+  // 1.10 Quality Control Checks (Pass / Fail Matrix)
   final List<Map<String, dynamic>> _qcAudits = [
     {
       'id': 'QC-881',
@@ -357,11 +485,43 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     },
   ];
 
+  // 1.11 Event Tasks
+  final List<Map<String, dynamic>> _tasks = [
+    {'id': 'TSK-101', 'title': 'Complete catering kitchen prep before 12:00 PM', 'event': 'EVT-000124', 'assignee': 'Priya Saxena', 'dept': 'Catering', 'priority': 'HIGH', 'status': 'COMPLETED', 'deadline': 'Today 12:00 PM'},
+    {'id': 'TSK-102', 'title': 'Floral canopy structure stability audit', 'event': 'EVT-000124', 'assignee': 'Neha Sharma', 'dept': 'Decor', 'priority': 'HIGH', 'status': 'COMPLETED', 'deadline': 'Today 01:00 PM'},
+    {'id': 'TSK-103', 'title': 'Sound & DJ stage acoustic test with dB meter', 'event': 'EVT-000125', 'assignee': 'Vikram Sethi', 'dept': 'Audio/Visual', 'priority': 'HIGH', 'status': 'IN_PROGRESS', 'deadline': 'Today 04:30 PM'},
+    {'id': 'TSK-104', 'title': 'Dispatch replacement kids mascot artist to Mini Hall', 'event': 'EVT-000126', 'assignee': 'Rahul Verma', 'dept': 'Coordination', 'priority': 'CRITICAL', 'status': 'BLOCKED', 'deadline': 'Today 03:00 PM'},
+  ];
+
+  // 1.12 Field Visits
+  final List<Map<String, dynamic>> _fieldVisits = [
+    {
+      'id': 'VST-501',
+      'officer': 'Amit Trivedi (Site Inspector)',
+      'venue': 'Grand Heritage Banquet',
+      'purpose': 'Pre-Wedding Final QC & Generator Load Test',
+      'date': 'Today, 10:00 AM',
+      'status': 'COMPLETED',
+      'gps': '26.4499° N, 80.3319° E (Verified)',
+      'notes': '62.5 kVA generator test successful on 100% AC load. Fire exits unblocked.',
+    },
+    {
+      'id': 'VST-502',
+      'officer': 'Deepak Verma',
+      'venue': 'Royal Palms Resort',
+      'purpose': 'Poolside Barricade & Electrical Grounding Check',
+      'date': 'Today, 01:30 PM',
+      'status': 'IN_PROGRESS',
+      'gps': '26.5122° N, 80.2741° E (Live)',
+      'notes': 'Checking waterproof cable junction boxes near poolside deck.',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
     _currentSection = widget.initialSectionIndex;
-    _tabController = TabController(length: 11, vsync: this, initialIndex: _currentSection);
+    _tabController = TabController(length: 12, vsync: this, initialIndex: _currentSection);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() => _currentSection = _tabController.index);
@@ -375,15 +535,96 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     super.dispose();
   }
 
-  // ---------------------------------------------------------------------------
-  // CRUD MODALS & ACTIONS
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 2. DIALOGS & COMPLETE CRUD ACTIONS
+  // ===========================================================================
 
+  // 2.1 Quick Actions Menu (Dashboard)
+  void _showQuickActionsMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.bolt_rounded, color: Color(0xFFF59E0B), size: 24),
+                SizedBox(width: 8),
+                Text('Operations Quick Command Hub', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildQuickActionBtn('Quick Booking', Icons.event_seat_rounded, const Color(0xFF2563EB), () {
+                  Navigator.pop(ctx);
+                  _showCreateBookingDialog();
+                }),
+                _buildQuickActionBtn('Quick Event', Icons.celebration_rounded, const Color(0xFF10B981), () {
+                  Navigator.pop(ctx);
+                  _showCreateEventDialog();
+                }),
+                _buildQuickActionBtn('Quick Task', Icons.task_alt_rounded, const Color(0xFF8B5CF6), () {
+                  Navigator.pop(ctx);
+                  _showCreateTaskDialog();
+                }),
+                _buildQuickActionBtn('Log Incident', Icons.warning_amber_rounded, const Color(0xFFEF4444), () {
+                  Navigator.pop(ctx);
+                  _showReportIssueDialog();
+                }),
+                _buildQuickActionBtn('Field Visit', Icons.place_rounded, const Color(0xFF0891B2), () {
+                  Navigator.pop(ctx);
+                  _showCreateFieldVisitDialog();
+                }),
+                _buildQuickActionBtn('QC Audit', Icons.fact_check_rounded, const Color(0xFFD97706), () {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen()));
+                }),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionBtn(String title, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 6),
+            Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 2.2 Create / Edit Booking Dialog
   void _showCreateBookingDialog({Map<String, dynamic>? editBooking}) {
     final customerCtrl = TextEditingController(text: editBooking?['customer'] ?? '');
     final phoneCtrl = TextEditingController(text: editBooking?['phone'] ?? '');
+    final emailCtrl = TextEditingController(text: editBooking?['email'] ?? 'client@partybala.in');
     final eventTitleCtrl = TextEditingController(text: editBooking?['eventTitle'] ?? '');
     final venueCtrl = TextEditingController(text: editBooking?['venue'] ?? 'Grand Heritage Banquet');
+    final spaceCtrl = TextEditingController(text: editBooking?['space'] ?? 'Crystal Ballroom');
     final dateCtrl = TextEditingController(text: editBooking?['date'] ?? '25 Oct 2026');
     final timeCtrl = TextEditingController(text: editBooking?['time'] ?? '06:30 PM - 11:30 PM');
     final guestsCtrl = TextEditingController(text: editBooking != null ? editBooking['guestCount'].toString() : '500');
@@ -413,7 +654,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
             ],
           ),
           content: SizedBox(
-            width: 520,
+            width: 540,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -433,7 +674,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                         child: TextField(
                           controller: customerCtrl,
                           decoration: InputDecoration(
-                            labelText: 'Customer / Host Name *',
+                            labelText: 'Customer Name *',
                             prefixIcon: const Icon(Icons.person_outline_rounded),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
@@ -485,13 +726,30 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                     ],
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: venueCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'Partner Venue & Space *',
-                      prefixIcon: const Icon(Icons.location_on_outlined),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: venueCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Venue *',
+                            prefixIcon: const Icon(Icons.location_on_outlined),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: spaceCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Specific Space / Lawn *',
+                            prefixIcon: const Icon(Icons.meeting_room_rounded),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -582,6 +840,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                     editBooking['phone'] = phoneCtrl.text.trim();
                     editBooking['eventTitle'] = eventTitleCtrl.text.trim();
                     editBooking['venue'] = venueCtrl.text.trim();
+                    editBooking['space'] = spaceCtrl.text.trim();
                     editBooking['date'] = dateCtrl.text.trim();
                     editBooking['time'] = timeCtrl.text.trim();
                     editBooking['eventType'] = eventType;
@@ -595,12 +854,13 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                       'id': newBookingId,
                       'customer': customerCtrl.text.trim(),
                       'phone': phoneCtrl.text.trim(),
-                      'email': 'customer@partybala.in',
+                      'email': emailCtrl.text.trim(),
                       'eventTitle': eventTitleCtrl.text.trim(),
                       'eventType': eventType,
                       'date': dateCtrl.text.trim(),
                       'time': timeCtrl.text.trim(),
                       'venue': venueCtrl.text.trim(),
+                      'space': spaceCtrl.text.trim(),
                       'guestCount': gCount,
                       'services': ['Banquet Space', 'Turnkey Catering', 'Theme Decor'],
                       'package': 'Enterprise Custom Package',
@@ -615,14 +875,18 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                       'decorCoordinator': 'Neha Sharma',
                       'specialRequests': requestsCtrl.text.trim(),
                       'issuesCount': 0,
+                      'createdDate': 'Today',
+                      'source': 'Admin Manual Entry',
                     });
-                    // Also auto-generate the connected Event 360° record
+                    // Also auto-generate connected Event 360° record
                     _events.insert(0, {
                       'id': 'EVT-000${_events.length + 127}',
                       'bookingId': newBookingId,
                       'title': eventTitleCtrl.text.trim(),
                       'venue': venueCtrl.text.trim(),
+                      'space': spaceCtrl.text.trim(),
                       'date': dateCtrl.text.trim(),
+                      'time': timeCtrl.text.trim(),
                       'status': 'PLANNING',
                       'readiness': 0.80,
                       'manager': opsManager,
@@ -641,7 +905,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(editBooking != null ? '✓ Booking updated!' : '✓ Booking & Event 360° generated across Operations!'),
+                    content: Text(editBooking != null ? '✓ Booking updated & synced!' : '✓ Booking & Event 360° generated across Operations!'),
                     backgroundColor: AppTheme.success,
                   ),
                 );
@@ -654,13 +918,296 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
+  // 2.3 Booking Cancellation Workflow Dialog
+  void _showBookingCancellationDialog(Map<String, dynamic> booking) {
+    final reasonCtrl = TextEditingController();
+    double refundAmount = (booking['paidAmount'] as int) * 0.8; // default 80% refund policy
+    bool notifyPartners = true;
+    bool adjustAccounts = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Icon(Icons.cancel_presentation_rounded, color: Colors.redAccent, size: 24),
+              const SizedBox(width: 8),
+              Text('Cancel Booking: ${booking['id']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFFCA5A5))),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Customer: ${booking['customer']} • Event: ${booking['eventTitle']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF991B1B))),
+                      const SizedBox(height: 4),
+                      Text('Paid Amount: ₹ ${booking['paidAmount']} • Calculated Refund: ₹ ${refundAmount.toInt()}', style: const TextStyle(fontSize: 12, color: Color(0xFFB91C1C))),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: reasonCtrl,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    labelText: 'Cancellation Reason & Approval Notes *',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                CheckboxListTile(
+                  dense: true,
+                  value: notifyPartners,
+                  onChanged: (v) => setDialogState(() => notifyPartners = v ?? true),
+                  title: const Text('Notify Partner Venue & Catering Team instantly', style: TextStyle(fontSize: 12)),
+                ),
+                CheckboxListTile(
+                  dense: true,
+                  value: adjustAccounts,
+                  onChanged: (v) => setDialogState(() => adjustAccounts = v ?? true),
+                  title: const Text('Create Accounts ledger refund entry', style: TextStyle(fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Back')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              onPressed: () {
+                if (reasonCtrl.text.trim().isEmpty) return;
+                setState(() {
+                  booking['opsStatus'] = 'CANCELLED';
+                  booking['cancellationReason'] = reasonCtrl.text.trim();
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✓ Booking Cancelled. Resources released and Accounts updated.'), backgroundColor: Colors.redAccent),
+                );
+              },
+              child: const Text('Confirm Cancellation'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 2.4 Create Event Dialog
+  void _showCreateEventDialog() {
+    final titleCtrl = TextEditingController();
+    final venueCtrl = TextEditingController(text: 'Grand Heritage Banquet');
+    final dateCtrl = TextEditingController(text: '22 Oct 2026');
+    final guestsCtrl = TextEditingController(text: '300');
+    final managerCtrl = TextEditingController(text: 'Kavita Nair');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.celebration_rounded, color: Color(0xFF10B981)),
+            SizedBox(width: 8),
+            Text('Create Operational Event', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SizedBox(
+          width: 480,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: InputDecoration(labelText: 'Event Title *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: venueCtrl,
+                decoration: InputDecoration(labelText: 'Venue & Spaces *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: dateCtrl,
+                      decoration: InputDecoration(labelText: 'Date *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: guestsCtrl,
+                      decoration: InputDecoration(labelText: 'Guest Count *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: managerCtrl,
+                decoration: InputDecoration(labelText: 'Assigned Operations Lead', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
+            onPressed: () {
+              if (titleCtrl.text.trim().isEmpty) return;
+              setState(() {
+                _events.insert(0, {
+                  'id': 'EVT-000${_events.length + 127}',
+                  'bookingId': 'PB-CUSTOM',
+                  'title': titleCtrl.text.trim(),
+                  'venue': venueCtrl.text.trim(),
+                  'date': dateCtrl.text.trim(),
+                  'time': '06:00 PM - 11:00 PM',
+                  'status': 'PLANNING',
+                  'readiness': 0.70,
+                  'manager': managerCtrl.text.trim(),
+                  'guests': int.tryParse(guestsCtrl.text.trim()) ?? 200,
+                  'qcStatus': 'SCHEDULED',
+                  'checklistCompleted': '10 / 18 Items',
+                  'timeline': [
+                    {'time': '09:00 AM', 'title': 'Venue Setup Access', 'owner': 'Operations Team', 'status': 'UPCOMING'},
+                    {'time': '06:00 PM', 'title': 'Event Execution', 'owner': managerCtrl.text.trim(), 'status': 'UPCOMING'},
+                  ],
+                });
+              });
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ Operational Event created!'), backgroundColor: AppTheme.success));
+            },
+            child: const Text('Create Event'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 2.5 Create Task Dialog
+  void _showCreateTaskDialog() {
+    final titleCtrl = TextEditingController();
+    final assigneeCtrl = TextEditingController(text: 'Priya Saxena');
+    final deadlineCtrl = TextEditingController(text: 'Today 06:00 PM');
+    String dept = 'Catering';
+    String priority = 'HIGH';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.task_alt_rounded, color: Color(0xFF8B5CF6)),
+              SizedBox(width: 8),
+              Text('Assign Operational Task', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SizedBox(
+            width: 460,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleCtrl,
+                  decoration: InputDecoration(labelText: 'Task Description *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: dept,
+                        decoration: InputDecoration(labelText: 'Department', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                        items: const [
+                          DropdownMenuItem(value: 'Catering', child: Text('🍽️ Catering')),
+                          DropdownMenuItem(value: 'Decor', child: Text('🌸 Decor')),
+                          DropdownMenuItem(value: 'Audio/Visual', child: Text('🔊 AV / Sound')),
+                          DropdownMenuItem(value: 'Coordination', child: Text('📋 Ops Lead')),
+                          DropdownMenuItem(value: 'Logistics', child: Text('🚚 Logistics')),
+                        ],
+                        onChanged: (v) => setDialogState(() => dept = v ?? 'Catering'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: priority,
+                        decoration: InputDecoration(labelText: 'Priority', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                        items: const [
+                          DropdownMenuItem(value: 'CRITICAL', child: Text('🔴 Critical')),
+                          DropdownMenuItem(value: 'HIGH', child: Text('🟠 High')),
+                          DropdownMenuItem(value: 'MEDIUM', child: Text('🟡 Medium')),
+                        ],
+                        onChanged: (v) => setDialogState(() => priority = v ?? 'HIGH'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: assigneeCtrl,
+                  decoration: InputDecoration(labelText: 'Assignee Employee *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: deadlineCtrl,
+                  decoration: InputDecoration(labelText: 'Deadline Time *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white),
+              onPressed: () {
+                if (titleCtrl.text.trim().isEmpty) return;
+                setState(() {
+                  _tasks.insert(0, {
+                    'id': 'TSK-${_tasks.length + 105}',
+                    'title': titleCtrl.text.trim(),
+                    'event': 'EVT-000124',
+                    'assignee': assigneeCtrl.text.trim(),
+                    'dept': dept,
+                    'priority': priority,
+                    'status': 'IN_PROGRESS',
+                    'deadline': deadlineCtrl.text.trim(),
+                  });
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ Task assigned to team!'), backgroundColor: AppTheme.success));
+              },
+              child: const Text('Assign Task'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 2.6 Report Incident / SLA Issue Dialog
   void _showReportIssueDialog() {
     final titleCtrl = TextEditingController();
     final bookingCtrl = TextEditingController(text: 'PB-10482');
     final causeCtrl = TextEditingController();
     String cat = 'Catering & Food Safety';
     String priority = 'HIGH';
-    String sla = '2 Hours';
 
     showDialog(
       context: context,
@@ -671,7 +1218,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
             children: [
               Icon(Icons.report_problem_rounded, color: Color(0xFFEF4444)),
               SizedBox(width: 8),
-              Text('Log Operational Incident / SLA Issue', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Log Incident & Start SLA Timer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           content: SizedBox(
@@ -781,9 +1328,168 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // MAIN BUILD METHOD
-  // ---------------------------------------------------------------------------
+  // 2.7 Create Field Visit Dialog
+  void _showCreateFieldVisitDialog() {
+    final officerCtrl = TextEditingController(text: 'Amit Trivedi');
+    final venueCtrl = TextEditingController(text: 'Grand Heritage Banquet');
+    final purposeCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.place_rounded, color: Color(0xFF0891B2)),
+            SizedBox(width: 8),
+            Text('Schedule Field Inspection', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: officerCtrl,
+                decoration: InputDecoration(labelText: 'Field Officer *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: venueCtrl,
+                decoration: InputDecoration(labelText: 'Venue / Site *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: purposeCtrl,
+                maxLines: 2,
+                decoration: InputDecoration(labelText: 'Inspection Purpose & Checklist *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0891B2), foregroundColor: Colors.white),
+            onPressed: () {
+              if (purposeCtrl.text.trim().isEmpty) return;
+              setState(() {
+                _fieldVisits.insert(0, {
+                  'id': 'VST-${_fieldVisits.length + 503}',
+                  'officer': officerCtrl.text.trim(),
+                  'venue': venueCtrl.text.trim(),
+                  'purpose': purposeCtrl.text.trim(),
+                  'date': 'Today, 03:00 PM',
+                  'status': 'SCHEDULED',
+                  'gps': 'Pending Site Arrival',
+                  'notes': 'Inspection task dispatched to mobile offline cache.',
+                });
+              });
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ Field visit scheduled!'), backgroundColor: AppTheme.success));
+            },
+            child: const Text('Schedule Visit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 2.8 Post-Event Closure Gate Modal
+  void _showEventClosureGateDialog(Map<String, dynamic> evt) {
+    bool tasksDone = true;
+    bool servicesDone = true;
+    bool issuesResolved = true;
+    bool qcAuditPassed = true;
+    bool customerConfirmed = true;
+    bool accountsReconciled = true;
+    final overrideReasonCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final allClear = tasksDone && servicesDone && issuesResolved && qcAuditPassed && customerConfirmed && accountsReconciled;
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                const Icon(Icons.lock_clock_rounded, color: Color(0xFF059669)),
+                const SizedBox(width: 8),
+                Text('Event Closure Gate: ${evt['id']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: SizedBox(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('MANDATORY VERIFICATION CRITERIA (ALL REQUIRED)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFF64748B))),
+                    const SizedBox(height: 8),
+                    _buildClosureCheckItem('All Mandatory Checklist Tasks Completed', tasksDone, (v) => setDialogState(() => tasksDone = v!)),
+                    _buildClosureCheckItem('All Assigned Services Executed & Signed Off', servicesDone, (v) => setDialogState(() => servicesDone = v!)),
+                    _buildClosureCheckItem('All Active Operational Issues & SLAs Resolved', issuesResolved, (v) => setDialogState(() => issuesResolved = v!)),
+                    _buildClosureCheckItem('Final Quality Control (QC) Audit Passed', qcAuditPassed, (v) => setDialogState(() => qcAuditPassed = v!)),
+                    _buildClosureCheckItem('Customer Digital Confirmation / Review Captured', customerConfirmed, (v) => setDialogState(() => customerConfirmed = v!)),
+                    _buildClosureCheckItem('Accounts & Partner Invoices Reconciled', accountsReconciled, (v) => setDialogState(() => accountsReconciled = v!)),
+                    const SizedBox(height: 12),
+                    if (!allClear) ...[
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(8)),
+                        child: const Text('⚠️ Criteria incomplete. Provide admin emergency override reason to force close.', style: TextStyle(color: Colors.red, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: overrideReasonCtrl,
+                        decoration: InputDecoration(labelText: 'Admin Override Reason & Audit Log *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF059669), foregroundColor: Colors.white),
+                onPressed: () {
+                  if (!allClear && overrideReasonCtrl.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please satisfy all checks or enter override reason.')));
+                    return;
+                  }
+                  setState(() {
+                    evt['status'] = 'CLOSED & RECONCILED';
+                  });
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ Event closed & reconciled across Accounts, Partner, and Review logs!'), backgroundColor: AppTheme.success));
+                },
+                child: const Text('Complete Event Closure'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildClosureCheckItem(String label, bool value, ValueChanged<bool?> onChanged) {
+    return CheckboxListTile(
+      dense: true,
+      value: value,
+      onChanged: onChanged,
+      title: Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+      activeColor: const Color(0xFF059669),
+    );
+  }
+
+  // ===========================================================================
+  // 3. MAIN BUILD METHOD
+  // ===========================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -804,8 +1510,13 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.bolt_rounded, color: Color(0xFFF59E0B)),
+            tooltip: 'Quick Actions',
+            onPressed: _showQuickActionsMenu,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF334155)),
-            tooltip: 'Refresh Execution Engine',
+            tooltip: 'Refresh Operations Data',
             onPressed: () => setState(() {}),
           ),
         ],
@@ -818,35 +1529,27 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
           indicatorWeight: 3,
           labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
           tabs: const [
-            Tab(icon: Icon(Icons.dashboard_customize_rounded, size: 18), text: '📊 Operations Dashboard'),
+            Tab(icon: Icon(Icons.dashboard_customize_rounded, size: 18), text: '📊 Dashboard'),
             Tab(icon: Icon(Icons.event_seat_rounded, size: 18), text: '📅 Bookings (360°)'),
-            Tab(icon: Icon(Icons.celebration_rounded, size: 18), text: '🎉 Events & Timelines'),
-            Tab(icon: Icon(Icons.location_city_rounded, size: 18), text: '🏢 Venues & Vendors'),
-            Tab(icon: Icon(Icons.fact_check_rounded, size: 18), text: '🛠️ Checklists & QC'),
-            Tab(icon: Icon(Icons.groups_rounded, size: 18), text: '👥 Staff Allocation'),
+            Tab(icon: Icon(Icons.celebration_rounded, size: 18), text: '🎉 Events & Run Sheets'),
+            Tab(icon: Icon(Icons.category_rounded, size: 18), text: '🏷️ Event Types'),
+            Tab(icon: Icon(Icons.location_city_rounded, size: 18), text: '🏢 Venues & Spaces'),
+            Tab(icon: Icon(Icons.handshake_rounded, size: 18), text: '🤝 Vendors & Readiness'),
+            Tab(icon: Icon(Icons.miscellaneous_services_rounded, size: 18), text: '🛎️ Services & SLA'),
+            Tab(icon: Icon(Icons.task_alt_rounded, size: 18), text: '📝 Tasks & Allocation'),
             Tab(icon: Icon(Icons.inventory_2_rounded, size: 18), text: '📦 Logistics & Inventory'),
             Tab(icon: Icon(Icons.place_rounded, size: 18), text: '📍 Field Operations'),
             Tab(icon: Icon(Icons.warning_amber_rounded, size: 18), text: '⚠️ Issues & SLA'),
-            Tab(icon: Icon(Icons.favorite_rounded, size: 18), text: '❤️ Customer Experience'),
-            Tab(icon: Icon(Icons.analytics_rounded, size: 18), text: '📈 Funnel & Bottlenecks'),
+            Tab(icon: Icon(Icons.analytics_rounded, size: 18), text: '📈 Funnel & Closure'),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (_currentSection == 8) {
-            _showReportIssueDialog();
-          } else {
-            _showCreateBookingDialog();
-          }
-        },
+        onPressed: _showQuickActionsMenu,
         backgroundColor: const Color(0xFFF59E0B),
         foregroundColor: Colors.white,
-        icon: Icon(_currentSection == 8 ? Icons.report_problem_rounded : Icons.add_rounded),
-        label: Text(
-          _currentSection == 8 ? '+ Log Incident' : '+ Create Booking / Event',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('+ Operations Hub', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -854,22 +1557,25 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
           _buildOperationsDashboardTab(),
           _buildBookingsTab(),
           _buildEventsTimelineTab(),
-          _buildVenuesVendorsTab(),
-          _buildChecklistsQcTab(),
-          _buildStaffAllocationTab(),
+          _buildEventTypesTab(),
+          _buildVenuesSpacesTab(),
+          _buildVendorsReadinessTab(),
+          _buildServicesTab(),
+          _buildTasksTab(),
           _buildLogisticsInventoryTab(),
           _buildFieldOperationsTab(),
           _buildIssuesSlaTab(),
-          _buildCustomerExperienceTab(),
-          _buildFunnelBottlenecksTab(),
+          _buildFunnelClosureTab(),
         ],
       ),
     );
   }
 
   // ===========================================================================
-  // 1. 📊 OPERATIONS DASHBOARD
+  // 4. TAB IMPLEMENTATIONS
   // ===========================================================================
+
+  // 4.1 📊 OPERATIONS DASHBOARD
   Widget _buildOperationsDashboardTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -899,25 +1605,47 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                   ],
                 ),
               ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), foregroundColor: Colors.white),
+                onPressed: _showQuickActionsMenu,
+                child: const Text('Quick Actions', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 16),
 
-        // Live Operational KPIs
-        const Text('TODAY\'S LIVE OPERATIONS MATRIX', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
-        const SizedBox(height: 10),
+        // Date Filter Chips
         Row(
           children: [
-            Expanded(child: _buildMetricCard('Total Bookings', '48', '41 Confirmed • 2 At Risk', Icons.event_available_rounded, const Color(0xFF10B981))),
+            const Text('Time Horizon: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B))),
+            const SizedBox(width: 8),
+            ...['Today', 'Tomorrow', 'This Weekend', 'Full Month'].map((range) => Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(range, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: _selectedDateRange == range ? Colors.white : const Color(0xFF334155))),
+                selected: _selectedDateRange == range,
+                selectedColor: const Color(0xFF0F172A),
+                backgroundColor: Colors.white,
+                onSelected: (v) => setState(() => _selectedDateRange = range),
+              ),
+            )),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // Live Operational KPIs
+        Row(
+          children: [
+            Expanded(child: _buildMetricCard('Total Bookings', '${_bookings.length}', '41 Confirmed • 2 At Risk', Icons.event_available_rounded, const Color(0xFF10B981))),
             const SizedBox(width: 12),
-            Expanded(child: _buildMetricCard('Live Events Today', '18', '7 In Progress • 9 Done', Icons.celebration_rounded, const Color(0xFFF59E0B))),
+            Expanded(child: _buildMetricCard('Live Events Today', '${_events.length}', '7 In Progress • 9 Done', Icons.celebration_rounded, const Color(0xFFF59E0B))),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildMetricCard('Active Issues', '9', '1 Critical • 3 SLA Alerts', Icons.warning_rounded, const Color(0xFFEF4444))),
+            Expanded(child: _buildMetricCard('Active Issues', '${_issues.length}', '1 Critical • 3 SLA Alerts', Icons.warning_rounded, const Color(0xFFEF4444))),
             const SizedBox(width: 12),
             Expanded(child: _buildMetricCard('Event Readiness', '92.4%', 'Tomorrow: 12 Events Ready', Icons.verified_rounded, const Color(0xFF2563EB))),
           ],
@@ -953,12 +1681,10 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ===========================================================================
-  // 2. 📅 BOOKINGS (360°)
-  // ===========================================================================
+  // 4.2 📅 BOOKINGS (360°)
   Widget _buildBookingsTab() {
     final filtered = _bookings.where((b) {
-      if (_bookingFilter != 'ALL' && b['opsStatus'] != _bookingFilter) return false;
+      if (_statusFilter != 'ALL' && b['opsStatus'] != _statusFilter) return false;
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         return b['customer'].toString().toLowerCase().contains(q) ||
@@ -1001,17 +1727,36 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
             ),
           ],
         ),
+        const SizedBox(height: 12),
+
+        // Status Filter Chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: ['ALL', 'CONFIRMED', 'PREPARATION', 'READY', 'AT_RISK', 'CANCELLED'].map((st) => Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(st, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _statusFilter == st ? Colors.white : const Color(0xFF334155))),
+                selected: _statusFilter == st,
+                selectedColor: const Color(0xFFF59E0B),
+                backgroundColor: Colors.white,
+                onSelected: (v) => setState(() => _statusFilter = st),
+              ),
+            )).toList(),
+          ),
+        ),
         const SizedBox(height: 16),
 
         const Text('ENTERPRISE BOOKINGS (CROSS-DEPARTMENT 360°)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
         const SizedBox(height: 10),
 
         ...filtered.map((b) {
-          final readiness = (b['readiness'] as double);
+          final readiness = (b['readiness'] as double? ?? 0.80);
           final status = b['opsStatus'];
           Color statusColor = const Color(0xFF10B981);
           if (status == 'AT_RISK') statusColor = const Color(0xFFEF4444);
           if (status == 'PREPARATION') statusColor = const Color(0xFFF59E0B);
+          if (status == 'CANCELLED') statusColor = const Color(0xFF64748B);
 
           return Card(
             elevation: 0,
@@ -1054,7 +1799,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                   Text(b['eventTitle'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A))),
                   const SizedBox(height: 4),
                   Text('Customer: ${b['customer']} (${b['phone']}) • ${b['guestCount']} Guests', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                  Text('Venue: ${b['venue']}', style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                  Text('Venue: ${b['venue']} (${b['space'] ?? "Main Hall"})', style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1081,14 +1826,12 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                       Row(
                         children: [
                           IconButton(icon: const Icon(Icons.edit_outlined, size: 18), onPressed: () => _showCreateBookingDialog(editBooking: b)),
-                          IconButton(
-                            icon: const Icon(Icons.cancel_outlined, size: 18, color: Colors.red),
-                            tooltip: 'Initiate Cancellation Workflow',
-                            onPressed: () {
-                              setState(() => b['opsStatus'] = 'CANCELLED');
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cancellation workflow initiated with Accounts & Partner notifications.')));
-                            },
-                          ),
+                          if (status != 'CANCELLED')
+                            IconButton(
+                              icon: const Icon(Icons.cancel_outlined, size: 18, color: Colors.red),
+                              tooltip: 'Initiate Cancellation Workflow',
+                              onPressed: () => _showBookingCancellationDialog(b),
+                            ),
                         ],
                       ),
                       ElevatedButton.icon(
@@ -1121,14 +1864,23 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ===========================================================================
-  // 3. 🎉 EVENTS & TIMELINES
-  // ===========================================================================
+  // 4.3 🎉 EVENTS & RUN SHEETS
   Widget _buildEventsTimelineTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        const Text('LIVE EVENT EXECUTION & MINUTE-BY-MINUTE TIMELINES', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('LIVE EVENT EXECUTION & RUN SHEETS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
+              onPressed: _showCreateEventDialog,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ New Event'),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
 
         ..._events.map((evt) {
@@ -1170,7 +1922,7 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                   ),
                   const SizedBox(height: 8),
                   Text(evt['title'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A))),
-                  Text('Venue: ${evt['venue']} • Guests: ${evt['guests']} • Manager: ${evt['manager']}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  Text('Venue: ${evt['venue']} (${evt['space'] ?? "Main Ballroom"}) • Guests: ${evt['guests']} • Manager: ${evt['manager']}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                   const SizedBox(height: 14),
                   const Text('OPERATIONAL TIMELINE & RUN SHEET', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Color(0xFF0F172A))),
                   const SizedBox(height: 8),
@@ -1194,19 +1946,29 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                   )),
                   const Divider(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventReadinessScreen(bookingId: evt['id'] ?? 'PB-10482'))),
-                        icon: const Icon(Icons.fact_check_rounded, size: 14),
-                        label: const Text('Readiness Check', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF059669)),
+                        onPressed: () => _showEventClosureGateDialog(evt),
+                        icon: const Icon(Icons.lock_clock_rounded, size: 14),
+                        label: const Text('Closure Gate', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen())),
-                        icon: const Icon(Icons.verified_rounded, size: 14),
-                        label: const Text('Perform QC Audit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      Row(
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventReadinessScreen(bookingId: evt['id'] ?? 'PB-10482'))),
+                            icon: const Icon(Icons.fact_check_rounded, size: 14),
+                            label: const Text('Readiness', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen())),
+                            icon: const Icon(Icons.verified_rounded, size: 14),
+                            label: const Text('QC Audit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1219,48 +1981,153 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ===========================================================================
-  // 4. 🏢 VENUES & VENDORS
-  // ===========================================================================
-  Widget _buildVenuesVendorsTab() {
+  // 4.4 🏷️ EVENT TYPES CATALOG
+  Widget _buildEventTypesTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('MULTI-SPACE VENUE ARCHITECTURE & BUNDLE LOGIC', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: Color(0xFF0F172A))),
-              const SizedBox(height: 8),
-              const Text(
-                'Grand Heritage Banquet (Spaces: Crystal Ballroom, Grand Lawn, Poolside Deck, Conference Suite).\n'
-                'Auto-Bundle Logic: Prevents duplicate billing when Venue already contains mandatory In-House Catering.',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('EVENT TYPE DEFINITIONS & CHECKLIST TEMPLATES', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), foregroundColor: Colors.white),
+              onPressed: () {
+                final nameCtrl = TextEditingController();
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Add Event Type Definition'),
+                    content: TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Event Type Name')),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (nameCtrl.text.trim().isNotEmpty) {
+                            setState(() {
+                              _eventTypes.add({
+                                'name': nameCtrl.text.trim(),
+                                'icon': Icons.stars_rounded,
+                                'color': const Color(0xFF0F172A),
+                                'activeCount': 0,
+                                'defaultSLA': '24h',
+                                'checklistItems': 15,
+                              });
+                            });
+                            Navigator.pop(ctx);
+                          }
+                        },
+                        child: const Text('Add Type'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ Event Type'),
+            ),
+          ],
         ),
+        const SizedBox(height: 12),
+        ..._eventTypes.map((et) => Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
+          color: Colors.white,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: (et['color'] as Color).withOpacity(0.12),
+              child: Icon(et['icon'] as IconData, color: et['color'] as Color),
+            ),
+            title: Text(et['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text('Active Events: ${et['activeCount']} • Default SLA: ${et['defaultSLA']} • Checklist Items: ${et['checklistItems']}'),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+              onPressed: () => setState(() => _eventTypes.remove(et)),
+            ),
+          ),
+        )),
       ],
     );
   }
 
-  // ===========================================================================
-  // 5. 🛠️ CHECKLISTS & QC
-  // ===========================================================================
-  Widget _buildChecklistsQcTab() {
+  // 4.5 🏢 VENUES & SPACES
+  Widget _buildVenuesSpacesTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        const Text('QUALITY CONTROL AUDITS & PASS/FAIL LOGS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
-        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('PARTNER VENUES & MULTI-SPACE MANAGEMENT', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), foregroundColor: Colors.white),
+              onPressed: () {},
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ Add Venue'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ..._venues.map((v) {
+          final spaces = (v['spaces'] as List<dynamic>?) ?? [];
+          final amenities = (v['amenities'] as List<dynamic>?) ?? [];
 
-        ..._qcAudits.map((qc) => Card(
+          return Card(
+            elevation: 0,
+            margin: const EdgeInsets.only(bottom: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(v['name'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A))),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+                        child: Text(v['status'], style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 11)),
+                      ),
+                    ],
+                  ),
+                  Text('${v['type']} • Location: ${v['location']} • Capacity: ${v['totalCapacity']} Guests', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(height: 12),
+                  const Text('DISTINCT VENUE SPACES & TARIFFS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: spaces.map((sp) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                      child: Text('${sp['name']} (Cap: ${sp['capacity']}) - ₹ ${sp['pricePerDay']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                    )).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('AMENITIES & EXCLUSIVITY POLICIES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 4),
+                  Text(amenities.join(' • '), style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // 4.6 🤝 VENDORS & PARTNER READINESS
+  Widget _buildVendorsReadinessTab() {
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        const Text('VENDOR PARTNERS & OPERATIONAL READINESS MATRIX', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        const SizedBox(height: 12),
+        ..._vendors.map((vnd) => Card(
           elevation: 0,
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
@@ -1273,19 +2140,17 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(qc['id'], style: const TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text(vnd['business'], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFF0F172A))),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
-                      child: Text(qc['result'], style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 11)),
+                      child: Text('Readiness: ${vnd['readinessScore']}%', style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 11)),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text('${qc['venue']} (Score: ${qc['score']})', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF0F172A))),
-                Text('Audited by: ${qc['auditor']} • ${qc['time']}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                Text('Category: ${vnd['category']} • Contact: ${vnd['contact']} • Rating: ⭐ ${vnd['rating']}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                 const SizedBox(height: 8),
-                Text(qc['notes'], style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B))),
+                Text('Services: ${(vnd['services'] as List<dynamic>).join(', ')}', style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B))),
               ],
             ),
           ),
@@ -1294,39 +2159,75 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ===========================================================================
-  // 6. 👥 STAFF ALLOCATION
-  // ===========================================================================
-  Widget _buildStaffAllocationTab() {
+  // 4.7 🛎️ SERVICES & SLA CATALOG
+  Widget _buildServicesTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+        const Text('SERVICE CATALOG, SLA & PRICING RULES', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+        const SizedBox(height: 12),
+        ..._services.map((srv) => Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
+          color: Colors.white,
+          child: ListTile(
+            leading: const CircleAvatar(backgroundColor: Color(0xFFEFF6FF), child: Icon(Icons.miscellaneous_services_rounded, color: Color(0xFF2563EB))),
+            title: Text(srv['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text('Category: ${srv['category']} • SLA: ${srv['sla']} • Rate: ${srv['baseRate']}'),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+              child: Text(srv['status'], style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 11)),
+            ),
           ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('STAFF CONFLICT & DOUBLE-BOOKING PREVENTION', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
-              SizedBox(height: 8),
-              Text(
-                'Automated shift roster sync with HR. If an Operations Coordinator is already assigned to a live banquet or marked on leave in HR, the system flags scheduling conflicts.',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
-              ),
-            ],
-          ),
-        ),
+        )),
       ],
     );
   }
 
-  // ===========================================================================
-  // 7. 📦 LOGISTICS & INVENTORY
-  // ===========================================================================
+  // 4.8 📝 TASKS & ALLOCATION
+  Widget _buildTasksTab() {
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('OPERATIONAL TASKS & COORDINATOR ASSIGNMENTS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white),
+              onPressed: _showCreateTaskDialog,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ Assign Task'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ..._tasks.map((tsk) => Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
+          color: Colors.white,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: tsk['status'] == 'COMPLETED' ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
+              child: Icon(tsk['status'] == 'COMPLETED' ? Icons.check_circle_rounded : Icons.pending_actions_rounded, color: tsk['status'] == 'COMPLETED' ? Colors.green : Colors.orange),
+            ),
+            title: Text(tsk['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+            subtitle: Text('Event: ${tsk['event']} • Assignee: ${tsk['assignee']} (${tsk['dept']})\nDeadline: ${tsk['deadline']} • Priority: ${tsk['priority']}'),
+            isThreeLine: true,
+            trailing: IconButton(
+              icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+              onPressed: () => setState(() => tsk['status'] = 'COMPLETED'),
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  // 4.9 📦 LOGISTICS & INVENTORY
   Widget _buildLogisticsInventoryTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1366,39 +2267,61 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ===========================================================================
-  // 8. 📍 FIELD OPERATIONS
-  // ===========================================================================
+  // 4.10 📍 FIELD OPERATIONS
   Widget _buildFieldOperationsTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('FIELD AUDITS & OFFLINE CAPTURE', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
-              SizedBox(height: 8),
-              Text(
-                'Field supervisors can execute on-site banquet inspections, capture geotagged photos, and log checklist responses completely offline. Syncs instantly when network is restored.',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('FIELD AUDITS, INSPECTIONS & GPS OFFLINE SYNC', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0891B2), foregroundColor: Colors.white),
+              onPressed: _showCreateFieldVisitDialog,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('+ Schedule Visit'),
+            ),
+          ],
         ),
+        const SizedBox(height: 12),
+        ..._fieldVisits.map((vst) => Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(vst['id'], style: const TextStyle(color: Color(0xFF0891B2), fontWeight: FontWeight.bold, fontSize: 12)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+                      child: Text(vst['status'], style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 11)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text('${vst['venue']} • Officer: ${vst['officer']}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
+                Text('Purpose: ${vst['purpose']}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                const SizedBox(height: 4),
+                Text('GPS: ${vst['gps']}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('Notes: ${vst['notes']}', style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B))),
+              ],
+            ),
+          ),
+        )),
       ],
     );
   }
 
-  // ===========================================================================
-  // 9. ⚠️ ISSUES & SLA COMMAND
-  // ===========================================================================
+  // 4.11 ⚠️ ISSUES & SLA COMMAND
   Widget _buildIssuesSlaTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -1469,40 +2392,8 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ===========================================================================
-  // 10. ❤️ CUSTOMER EXPERIENCE
-  // ===========================================================================
-  Widget _buildCustomerExperienceTab() {
-    return ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('POST-EVENT CLOSURE & CUSTOMER FEEDBACK WORKFLOW', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
-              SizedBox(height: 8),
-              Text(
-                'Event Completed → Operations Summary Report → Customer Review Request (Automated WhatsApp) → Accounts Financial Reconciliation → Partner Performance Score Updated.',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ===========================================================================
-  // 11. 📈 FUNNEL & BOTTLENECKS
-  // ===========================================================================
-  Widget _buildFunnelBottlenecksTab() {
+  // 4.12 📈 FUNNEL & CLOSURE
+  Widget _buildFunnelClosureTab() {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
@@ -1530,9 +2421,9 @@ class _AdminOperationsEventsScreenState extends State<AdminOperationsEventsScree
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // HELPER WIDGETS
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 5. HELPER WIDGETS
+  // ===========================================================================
 
   Widget _buildMetricCard(String label, String val, String sub, IconData icon, Color color) {
     return Container(
