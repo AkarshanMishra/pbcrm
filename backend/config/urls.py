@@ -7,31 +7,39 @@ from django.conf import settings
 from django.http import HttpResponse, FileResponse, Http404
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
-FLUTTER_WEB_DIR = Path(settings.BASE_DIR).parent / 'mobile' / 'build' / 'web'
+def get_flutter_web_dir():
+    static_app = Path(settings.BASE_DIR) / 'static' / 'app'
+    if (static_app / 'index.html').exists():
+        return static_app
+    mobile_web = Path(settings.BASE_DIR).parent / 'mobile' / 'build' / 'web'
+    if (mobile_web / 'index.html').exists():
+        return mobile_web
+    return static_app
 
 def serve_flutter_app(request, resource=''):
-    if not FLUTTER_WEB_DIR.exists():
+    web_dir = get_flutter_web_dir()
+    if not (web_dir / 'index.html').exists():
         return HttpResponse(
-            "<html><body style='font-family:sans-serif;padding:40px;background:#0f172a;color:#fff;text-align:center;'>"
-            "<h2>Flutter Web build not ready</h2>"
-            "<p>Please run <code>flutter build web</code> to generate the desktop web client.</p>"
+            "<html><body style='font-family:sans-serif;padding:40px;background:#F8FAFC;color:#0F172A;text-align:center;'>"
+            "<h2>PCRM Enterprise Web Client Preparing</h2>"
+            "<p>The application assets are building. Please refresh in a few seconds.</p>"
             "</body></html>",
             status=503,
             content_type="text/html"
         )
     
     resource_clean = resource.strip('/')
-    if not resource_clean:
-        index_path = FLUTTER_WEB_DIR / 'index.html'
+    if not resource_clean or resource_clean == 'app':
+        index_path = web_dir / 'index.html'
         if index_path.exists():
             resp = FileResponse(open(index_path, 'rb'), content_type='text/html')
             resp['Cache-Control'] = 'no-cache, no-store, must-revalidate'
             return resp
         raise Http404("index.html not found")
 
-    target_file = (FLUTTER_WEB_DIR / resource_clean).resolve()
+    target_file = (web_dir / resource_clean).resolve()
     # Security directory traversal check
-    if not str(target_file).startswith(str(FLUTTER_WEB_DIR.resolve())):
+    if not str(target_file).startswith(str(web_dir.resolve())):
         raise Http404("Access denied")
 
     if target_file.is_file():
@@ -52,7 +60,7 @@ def serve_flutter_app(request, resource=''):
         return resp
 
     # Fallback to index.html for client-side routing
-    index_path = FLUTTER_WEB_DIR / 'index.html'
+    index_path = web_dir / 'index.html'
     if index_path.exists():
         resp = FileResponse(open(index_path, 'rb'), content_type='text/html')
         resp['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -71,16 +79,16 @@ def root_landing_view(request):
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-            body { background: #0F172A; color: #F8FAFC; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-            .container { max-width: 860px; width: 100%; background: #1E293B; border-radius: 20px; border: 1px solid #334155; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-            .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.3); }
-            .badge-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981; }
-            h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; background: linear-gradient(to right, #60A5FA, #A78BFA, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-            p.subtitle { color: #94A3B8; font-size: 15px; margin-bottom: 25px; line-height: 1.6; }
+            body { background: #F8FAFC; color: #0F172A; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+            .container { max-width: 860px; width: 100%; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; padding: 40px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.06); }
+            .badge { display: inline-flex; align-items: center; gap: 6px; background: #ECFDF5; color: #059669; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 700; margin-bottom: 20px; border: 1px solid #A7F3D0; }
+            .badge-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 8px #10B981; }
+            h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; color: #0F172A; }
+            p.subtitle { color: #64748B; font-size: 15px; margin-bottom: 25px; line-height: 1.6; }
             
             .hero-card {
-                background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2));
-                border: 1.5px solid #60A5FA;
+                background: linear-gradient(135deg, #EFF6FF, #FDF2F8);
+                border: 1.5px solid #BFDBFE;
                 border-radius: 16px;
                 padding: 24px;
                 margin-bottom: 25px;
@@ -89,10 +97,10 @@ def root_landing_view(request):
                 justify-content: space-between;
                 gap: 20px;
             }
-            .hero-card h2 { font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
-            .hero-card p { font-size: 14px; color: #CBD5E1; }
+            .hero-card h2 { font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
+            .hero-card p { font-size: 14px; color: #475569; }
             .btn-primary {
-                background: linear-gradient(135deg, #2563EB, #7C3AED);
+                background: linear-gradient(135deg, #2563EB, #4F46E5);
                 color: #FFFFFF;
                 text-decoration: none;
                 font-weight: 700;
@@ -101,25 +109,25 @@ def root_landing_view(request):
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
-                box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.5);
+                box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
                 transition: transform 0.2s;
                 white-space: nowrap;
             }
             .btn-primary:hover { transform: scale(1.03); }
 
             .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 30px; }
-            .card { background: #0F172A; border: 1px solid #334155; border-radius: 14px; padding: 20px; text-decoration: none; color: inherit; transition: all 0.2s ease; display: flex; flex-direction: column; }
-            .card:hover { border-color: #60A5FA; transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(96, 165, 250, 0.2); }
-            .card h3 { font-size: 16px; font-weight: 700; color: #F8FAFC; margin-bottom: 6px; }
-            .card p { font-size: 13px; color: #94A3B8; line-height: 1.4; flex-grow: 1; margin-bottom: 12px; }
-            .card-link { font-size: 13px; font-weight: 600; color: #60A5FA; display: flex; align-items: center; gap: 4px; }
+            .card { background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 20px; text-decoration: none; color: inherit; transition: all 0.2s ease; display: flex; flex-direction: column; }
+            .card:hover { border-color: #2563EB; transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.15); }
+            .card h3 { font-size: 16px; font-weight: 700; color: #0F172A; margin-bottom: 6px; }
+            .card p { font-size: 13px; color: #64748B; line-height: 1.4; flex-grow: 1; margin-bottom: 12px; }
+            .card-link { font-size: 13px; font-weight: 700; color: #2563EB; display: flex; align-items: center; gap: 4px; }
             
-            .credentials-box { background: #0F172A; border: 1px solid #334155; border-radius: 14px; padding: 20px; }
-            .credentials-box h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 12px; }
+            .credentials-box { background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 20px; }
+            .credentials-box h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; margin-bottom: 12px; font-weight: 800; }
             table { width: 100%; border-collapse: collapse; font-size: 13px; }
-            th { text-align: left; color: #94A3B8; padding-bottom: 8px; border-bottom: 1px solid #334155; }
-            td { padding: 8px 0; border-bottom: 1px solid rgba(51, 65, 85, 0.5); }
-            code { background: #1E293B; padding: 2px 6px; border-radius: 4px; color: #E2E8F0; font-family: monospace; }
+            th { text-align: left; color: #64748B; padding-bottom: 8px; border-bottom: 1px solid #E2E8F0; font-weight: 700; }
+            td { padding: 8px 0; border-bottom: 1px solid #F1F5F9; color: #1E293B; }
+            code { background: #E2E8F0; padding: 2px 6px; border-radius: 4px; color: #0F172A; font-family: monospace; font-weight: 600; }
         </style>
     </head>
     <body>
@@ -168,17 +176,17 @@ def root_landing_view(request):
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong style="color: #A78BFA;">Admin</strong></td>
+                            <td><strong style="color: #7C3AED;">Admin</strong></td>
                             <td><code>PBE000001</code> / <code>admin@pcrm.local</code></td>
                             <td><code>AdminPassword@123!</code></td>
                         </tr>
                         <tr>
-                            <td><strong style="color: #60A5FA;">Manager</strong></td>
+                            <td><strong style="color: #2563EB;">Manager</strong></td>
                             <td><code>PBE000002</code> / <code>it.manager@pcrm.local</code></td>
                             <td><code>ManagerPassword@123!</code></td>
                         </tr>
                         <tr>
-                            <td><strong style="color: #34D399;">Employee</strong></td>
+                            <td><strong style="color: #059669;">Employee</strong></td>
                             <td><code>PBE000003</code> / <code>dev.rahul@pcrm.local</code></td>
                             <td><code>EmployeePassword@123!</code></td>
                         </tr>
@@ -192,12 +200,16 @@ def root_landing_view(request):
     return HttpResponse(html_content)
 
 urlpatterns = [
-    # Root Portal
-    path('', root_landing_view, name='root-portal'),
-    
-    # Desktop / Web App
+    # Direct Desktop / Web App Entry Point at Root & /app/
+    path('', serve_flutter_app, name='flutter-web-root-direct'),
     path('app/', serve_flutter_app, name='flutter-web-root'),
     re_path(r'^app/(?P<resource>.*)$', serve_flutter_app, name='flutter-web-assets'),
+
+    # Direct Flutter static asset resolvers for root-relative paths
+    re_path(r'^(?P<resource>(flutter_bootstrap\.js|main\.dart\.js|flutter_service_worker\.js|assets/.*|canvaskit/.*|manifest\.json|favicon\.png|version\.json))$', serve_flutter_app, name='flutter-root-assets'),
+
+    # Optional Portal Landing & Docs
+    path('portal/', root_landing_view, name='root-portal'),
 
     # Django Admin
     path('admin/', admin.site.urls),

@@ -139,16 +139,16 @@ class AuthGate extends StatelessWidget {
 
       case AuthStatus.initializing:
         return const Scaffold(
-          backgroundColor: Color(0xFF0F172A),
+          backgroundColor: Color(0xFFF8FAFC),
           body: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(color: Color(0xFF3B82F6)),
+                CircularProgressIndicator(color: Color(0xFF2563EB)),
                 SizedBox(height: 16),
                 Text(
                   'Loading PCRM Enterprise...',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
