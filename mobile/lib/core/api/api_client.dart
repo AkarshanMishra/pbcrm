@@ -19,7 +19,7 @@ class ApiClient {
       } catch (_) {}
       return 'http://127.0.0.1:8000/api/v1';
     }
-    return 'http://10.198.30.44:8000/api/v1';
+    return 'http://10.196.90.44:8000/api/v1';
   }
 
   ApiClient._internal() {

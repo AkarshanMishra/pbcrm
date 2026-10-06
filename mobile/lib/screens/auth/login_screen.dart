@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: urlController,
                 decoration: const InputDecoration(
                   labelText: 'Backend URL',
-                  hintText: 'http://10.198.30.44:8000/api/v1',
+                  hintText: 'http://10.196.90.44:8000/api/v1',
                   prefixIcon: Icon(Icons.link),
                 ),
               ),
@@ -256,7 +256,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : const Text('Sign In Securely'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Visible Server IP Status Pill
+                  Center(
+                    child: InkWell(
+                      onTap: _showServerConfigDialog,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFCBD5E1)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.wifi_tethering, size: 14, color: AppTheme.primary),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'Server: ${_api.dio.options.baseUrl}',
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF334155), fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.edit_outlined, size: 12, color: Color(0xFF64748B)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   const Center(
                     child: Text(
