@@ -28,7 +28,6 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
   bool _isCheckedIn = true;
   final String _checkInTime = "09:15 AM";
 
-
   Map<String, dynamic> _telemetry = {
     'workforce': {
       'total': 124,
@@ -86,7 +85,6 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
     } catch (_) {}
   }
 
-
   void _showAddEmployeeWizard() {
     showModalBottomSheet(
       context: context,
@@ -100,180 +98,336 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: RefreshIndicator(
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      child: RefreshIndicator(
         onRefresh: _fetchDashboardData,
         color: const Color(0xFFEC4899),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Welcome Greeting & Fast Clock-in Bar
-              _buildHeader(),
-              const SizedBox(height: 20),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 900;
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Radiant Clean Header Card
+                  _buildHeader(isDesktop),
+                  const SizedBox(height: 20),
 
-              // 2. Main Executive Grid
-              if (isDesktop) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left Column (Workforce & Attendance Analytics)
-                    Expanded(
-                      flex: 6,
-                      child: Column(
-                        children: [
-                          _buildWorkforceOverview(),
-                          const SizedBox(height: 16),
-                          _buildTodayAttendanceCard(),
-                          const SizedBox(height: 16),
-                          _buildRecruitmentPipelineCard(),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 20),
+                  // 2. Executive Responsive Grid
+                  if (isDesktop) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Column (Workforce & Attendance Analytics)
+                        Expanded(
+                          flex: 6,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildWorkforceOverview(),
+                              const SizedBox(height: 16),
+                              _buildTodayAttendanceCard(),
+                              const SizedBox(height: 16),
+                              _buildRecruitmentPipelineCard(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 20),
 
-                    // Right Column (Needs Attention & Quick Fast Actions)
-                    Expanded(
-                      flex: 4,
-                      child: Column(
-                        children: [
-                          _buildNeedsAttentionSection(),
-                          const SizedBox(height: 16),
-                          _buildQuickActionsGrid(),
-                          const SizedBox(height: 16),
-                          _buildAnnouncementsSection(),
-                        ],
-                      ),
+                        // Right Column (Needs Attention & Quick Fast Actions)
+                        Expanded(
+                          flex: 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildNeedsAttentionSection(),
+                              const SizedBox(height: 16),
+                              _buildQuickActionsGrid(),
+                              const SizedBox(height: 16),
+                              _buildAnnouncementsSection(),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                  ] else ...[
+                    _buildWorkforceOverview(),
+                    const SizedBox(height: 16),
+                    _buildTodayAttendanceCard(),
+                    const SizedBox(height: 16),
+                    _buildNeedsAttentionSection(),
+                    const SizedBox(height: 16),
+                    _buildQuickActionsGrid(),
+                    const SizedBox(height: 16),
+                    _buildRecruitmentPipelineCard(),
+                    const SizedBox(height: 16),
+                    _buildAnnouncementsSection(),
                   ],
-                ),
-              ] else ...[
-                _buildWorkforceOverview(),
-                const SizedBox(height: 16),
-                _buildTodayAttendanceCard(),
-                const SizedBox(height: 16),
-                _buildNeedsAttentionSection(),
-                const SizedBox(height: 16),
-                _buildQuickActionsGrid(),
-                const SizedBox(height: 16),
-                _buildRecruitmentPipelineCard(),
-                const SizedBox(height: 16),
-                _buildAnnouncementsSection(),
-              ],
-              const SizedBox(height: 40),
-            ],
-          ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
   // ===========================================================================
-  // 1. WELCOME HEADER
+  // 1. RADIANT CLEAN SAAS HEADER (NO DARK BLUE VOID)
   // ===========================================================================
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDesktop) {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Text(
-                      "Executive Workforce Command Center 👋",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top Radiant Accent Bar
+            Container(
+              height: 4,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFEC4899), Color(0xFF8B5CF6), Color(0xFF2563EB)],
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  "Real-time Enterprise HR Operations, Talent Roster, Leave Approvals & Department Governance",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF94A3B8),
-                    fontWeight: FontWeight.w500,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: isDesktop ? _buildDesktopHeaderContent() : _buildMobileHeaderContent(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopHeaderContent() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDF2F8),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFBCFE8)),
+                    ),
+                    child: const Icon(Icons.people_alt_rounded, color: Color(0xFFEC4899), size: 22),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: (_isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.5),
-                            blurRadius: 6,
-                          )
-                        ],
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Executive Workforce & HR Command Center",
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "Real-time Enterprise HR Operations, Talent Roster, Leave Approvals & Department Governance",
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _isCheckedIn ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _isCheckedIn ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isCheckedIn ? "ATTENDANCE LOGGED • CHECKED IN AT $_checkInTime" : "CURRENTLY CHECKED OUT",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                        letterSpacing: 0.4,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _isCheckedIn ? "ATTENDANCE LOGGED • CHECKED IN AT $_checkInTime" : "CURRENTLY CHECKED OUT",
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: _isCheckedIn ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton.icon(
-            icon: Icon(_isCheckedIn ? Icons.logout_rounded : Icons.login_rounded, size: 16),
-            onPressed: () {
-              setState(() => _isCheckedIn = !_isCheckedIn);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_isCheckedIn ? "Checked in successfully" : "Checked out successfully"),
-                  backgroundColor: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isCheckedIn ? const Color(0xFF334155) : const Color(0xFFEC4899),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            ),
-            label: Text(
-              _isCheckedIn ? "CLOCK OUT" : "CLOCK IN",
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-            ),
+        ),
+        const SizedBox(width: 16),
+        ElevatedButton.icon(
+          icon: Icon(_isCheckedIn ? Icons.logout_rounded : Icons.login_rounded, size: 16),
+          onPressed: () {
+            setState(() => _isCheckedIn = !_isCheckedIn);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(_isCheckedIn ? "Checked in successfully" : "Checked out successfully"),
+                backgroundColor: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _isCheckedIn ? const Color(0xFF0F172A) : const Color(0xFFEC4899),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           ),
-        ],
-      ),
+          label: Text(
+            _isCheckedIn ? "CLOCK OUT" : "CLOCK IN",
+            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileHeaderContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDF2F8),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFBCFE8)),
+              ),
+              child: const Icon(Icons.people_alt_rounded, color: Color(0xFFEC4899), size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                "HR Command Center",
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          "Workforce roster, attendance radar & leave approvals",
+          style: TextStyle(
+            fontSize: 12,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _isCheckedIn ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: _isCheckedIn ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    _isCheckedIn ? "LOGGED: $_checkInTime" : "OFF DUTY",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _isCheckedIn ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton.icon(
+              icon: Icon(_isCheckedIn ? Icons.logout_rounded : Icons.login_rounded, size: 14),
+              onPressed: () {
+                setState(() => _isCheckedIn = !_isCheckedIn);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isCheckedIn ? const Color(0xFF0F172A) : const Color(0xFFEC4899),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: Size.zero,
+              ),
+              label: Text(
+                _isCheckedIn ? "OUT" : "IN",
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
