@@ -12,32 +12,34 @@ import 'it_daily_report_screen.dart';
 
 class ITShellScreen extends StatefulWidget {
   final bool isManager;
-  const ITShellScreen({super.key, this.isManager = false});
+  final int initialTabIndex;
+  const ITShellScreen({super.key, this.isManager = false, this.initialTabIndex = 0});
 
   @override
   State<ITShellScreen> createState() => _ITShellScreenState();
 }
 
-class _ITShellScreenState extends State<ITShellScreen> {
-  int _currentIndex = 0;
+class _ITShellScreenState extends State<ITShellScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   late bool _managerView;
 
   @override
   void initState() {
     super.initState();
     _managerView = widget.isManager;
+    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
-  void _onTabSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _showQuickActionSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -55,7 +57,7 @@ class _ITShellScreenState extends State<ITShellScreen> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF475569),
+                      color: const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -63,10 +65,10 @@ class _ITShellScreenState extends State<ITShellScreen> {
                 const Text(
                   "IT & ENGINEERING QUICK ACTIONS",
                   style: TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 12,
+                    color: Color(0xFF0F172A),
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 1.1,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -78,27 +80,27 @@ class _ITShellScreenState extends State<ITShellScreen> {
                       ctx,
                       label: "New Task",
                       icon: Icons.add_task_rounded,
-                      color: const Color(0xFF38BDF8),
+                      color: const Color(0xFF0284C7),
                       onTap: () {
                         Navigator.pop(ctx);
-                        setState(() => _currentIndex = 1);
+                        _tabController.animateTo(1);
                       },
                     ),
                     _buildActionItem(
                       ctx,
                       label: "Create Ticket",
                       icon: Icons.confirmation_number_outlined,
-                      color: const Color(0xFFFB923C),
+                      color: const Color(0xFFF59E0B),
                       onTap: () {
                         Navigator.pop(ctx);
-                        setState(() => _currentIndex = 2);
+                        _tabController.animateTo(2);
                       },
                     ),
                     _buildActionItem(
                       ctx,
                       label: "Deploy Release",
                       icon: Icons.rocket_launch_rounded,
-                      color: const Color(0xFFA78BFA),
+                      color: const Color(0xFF10B981),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const ITDeploymentScreen()));
@@ -106,9 +108,9 @@ class _ITShellScreenState extends State<ITShellScreen> {
                     ),
                     _buildActionItem(
                       ctx,
-                      label: "Review PRs",
+                      label: "Code Review",
                       icon: Icons.code_rounded,
-                      color: const Color(0xFF60A5FA),
+                      color: const Color(0xFF8B5CF6),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const ITDevelopmentScreen()));
@@ -118,7 +120,7 @@ class _ITShellScreenState extends State<ITShellScreen> {
                       ctx,
                       label: "Knowledge Base",
                       icon: Icons.menu_book_rounded,
-                      color: const Color(0xFF34D399),
+                      color: const Color(0xFF059669),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const ITKnowledgeBaseScreen()));
@@ -128,7 +130,7 @@ class _ITShellScreenState extends State<ITShellScreen> {
                       ctx,
                       label: "Daily Report",
                       icon: Icons.edit_note_rounded,
-                      color: const Color(0xFF10B981),
+                      color: const Color(0xFF0284C7),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const ITDailyReportScreen()));
@@ -158,9 +160,9 @@ class _ITShellScreenState extends State<ITShellScreen> {
         width: 100,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: <Widget>[
@@ -179,75 +181,105 @@ class _ITShellScreenState extends State<ITShellScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = <Widget>[
-      ITHomeScreen(
-        onSwitchToTickets: () => setState(() => _currentIndex = 2),
-        onSwitchToSystems: () => setState(() => _currentIndex = 3),
-        onSwitchToWork: () => setState(() => _currentIndex = 1),
-      ),
-      const ITWorkScreen(),
-      _managerView ? const ITManagerTeamScreen() : const ITTicketsScreen(),
-      const ITSystemsScreen(),
-      ITProfileScreen(
-        onSwitchToManager: () {
-          setState(() {
-            _managerView = !_managerView;
-          });
-        },
-      ),
-    ];
-
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF38BDF8),
-        onPressed: _showQuickActionSheet,
-        child: const Icon(Icons.bolt_rounded, color: Color(0xFF0F172A), size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: const Color(0xFF1E293B),
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              _buildNavItem(0, Icons.home_rounded, "Home"),
-              _buildNavItem(1, Icons.assignment_rounded, "Work"),
-              const SizedBox(width: 40),
-              _buildNavItem(2, _managerView ? Icons.groups_rounded : Icons.confirmation_number_rounded, _managerView ? "Team" : "Tickets"),
-              _buildNavItem(3, Icons.dns_rounded, "Systems"),
-            ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F9FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFBAE6FD)),
+              ),
+              child: const Icon(Icons.terminal_rounded, color: Color(0xFF0284C7), size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'IT & Infrastructure Tower',
+                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                ),
+                Text(
+                  'Sprint Backlog, DevOps, Deployments, Incidents & System Health',
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bolt_rounded, color: Color(0xFF0284C7)),
+            tooltip: 'IT Fast Actions',
+            onPressed: _showQuickActionSheet,
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(44),
+          child: Container(
+            color: Colors.white,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorColor: const Color(0xFF0284C7),
+              indicatorWeight: 3,
+              labelColor: const Color(0xFF0284C7),
+              unselectedLabelColor: const Color(0xFF64748B),
+              labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              tabs: [
+                _buildTab(Icons.dashboard_rounded, 'Overview'),
+                _buildTab(Icons.assignment_rounded, 'Sprint Work'),
+                _buildTab(_managerView ? Icons.groups_rounded : Icons.confirmation_number_rounded, _managerView ? 'Team Oversight' : 'Tickets'),
+                _buildTab(Icons.dns_rounded, 'Systems Health'),
+                _buildTab(Icons.person_outline_rounded, 'Profile & Settings'),
+              ],
+            ),
           ),
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          ITHomeScreen(
+            onSwitchToTickets: () => _tabController.animateTo(2),
+            onSwitchToSystems: () => _tabController.animateTo(3),
+            onSwitchToWork: () => _tabController.animateTo(1),
+          ),
+          const ITWorkScreen(),
+          _managerView ? const ITManagerTeamScreen() : const ITTicketsScreen(),
+          const ITSystemsScreen(),
+          ITProfileScreen(
+            onSwitchToManager: () {
+              setState(() {
+                _managerView = !_managerView;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    bool isSel = _currentIndex == index;
-    Color col = isSel ? const Color(0xFF38BDF8) : const Color(0xFF94A3B8);
-    return InkWell(
-      onTap: () => _onTabSelected(index),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, color: col, size: 20),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(color: col, fontSize: 10, fontWeight: isSel ? FontWeight.w800 : FontWeight.w500),
-            ),
-          ],
-        ),
+  Widget _buildTab(IconData icon, String label) {
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
       ),
     );
   }

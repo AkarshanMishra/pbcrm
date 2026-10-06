@@ -95,38 +95,36 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadOperationsData,
-          color: const Color(0xFF10B981),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                _buildHeader(),
-                const SizedBox(height: 16),
-                _buildAttendanceCard(),
-                const SizedBox(height: 16),
-                _buildScorecardGrid(),
-                const SizedBox(height: 20),
-                _buildSectionHeader("TODAY'S OPERATIONS", () => widget.onSwitchToOperations?.call()),
-                const SizedBox(height: 10),
-                _buildTodayOperationsTimeline(),
-                const SizedBox(height: 20),
-                _buildSectionHeader("NEEDS ATTENTION", () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsIssuesScreen()));
-                }),
-                const SizedBox(height: 10),
-                _buildNeedsAttentionSection(),
-                const SizedBox(height: 20),
-                _buildQuickActionsRow(),
-                const SizedBox(height: 80),
-              ],
-            ),
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      child: RefreshIndicator(
+        onRefresh: _loadOperationsData,
+        color: const Color(0xFFD97706),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _buildHeader(),
+              const SizedBox(height: 16),
+              _buildAttendanceCard(),
+              const SizedBox(height: 16),
+              _buildScorecardGrid(),
+              const SizedBox(height: 20),
+              _buildSectionHeader("TODAY'S OPERATIONS TIMELINE", () => widget.onSwitchToOperations?.call()),
+              const SizedBox(height: 10),
+              _buildTodayOperationsTimeline(),
+              const SizedBox(height: 20),
+              _buildSectionHeader("ACTION REQUIRED & INCIDENTS", () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsIssuesScreen()));
+              }),
+              const SizedBox(height: 10),
+              _buildNeedsAttentionSection(),
+              const SizedBox(height: 20),
+              _buildQuickActionsRow(),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
@@ -134,42 +132,70 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const <Widget>[
-            Text(
-              "Good Morning, Rahul 👋",
-              style: TextStyle(
-                color: Color(0xFFF8FAFC),
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              "Operations Executive • Field & Venue Hub",
-              style: TextStyle(
-                color: Color(0xFF94A3B8),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF334155)),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
-          child: const Icon(Icons.notifications_none_rounded, color: Color(0xFFF8FAFC), size: 22),
-        ),
-      ],
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Text(
+                      "Operations & Event Execution ⚡",
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 18.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: const Text(
+                    "Field Execution • Venue Prep • Logistics & Quality Control",
+                    style: TextStyle(color: Color(0xFFB45309), fontSize: 11.5, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsDailyReportScreen()));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD97706),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.assignment_turned_in_rounded, size: 16),
+            label: const Text("Daily Report", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -177,10 +203,10 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: _isCheckedIn ? const Color(0xFF10B981).withOpacity(0.4) : const Color(0xFFEF4444).withOpacity(0.4),
+          color: _isCheckedIn ? const Color(0xFFA7F3D0) : const Color(0xFFE2E8F0),
         ),
       ),
       child: Row(
@@ -192,13 +218,10 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                  color: _isCheckedIn ? const Color(0xFF10B981) : Colors.grey,
                   shape: BoxShape.circle,
                   boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: (_isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withOpacity(0.6),
-                      blurRadius: 6,
-                    ),
+                    if (_isCheckedIn) const BoxShadow(color: Color(0xFF10B981), blurRadius: 6),
                   ],
                 ),
               ),
@@ -207,16 +230,16 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    _isCheckedIn ? "CHECKED IN" : "CHECKED OUT",
+                    _isCheckedIn ? "ACTIVE ON DUTY" : "CURRENTLY OFF DUTY",
                     style: TextStyle(
-                      color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                      color: _isCheckedIn ? const Color(0xFF065F46) : const Color(0xFF64748B),
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
-                    _isCheckedIn ? "Since $_checkInTime" : "Currently off-duty",
-                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                    _isCheckedIn ? "Since $_checkInTime • Venue Assigned" : "Currently not checked in",
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
                   ),
                 ],
               ),
@@ -225,14 +248,15 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
           ElevatedButton(
             onPressed: _toggleAttendance,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _isCheckedIn ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-              foregroundColor: Colors.white,
+              backgroundColor: _isCheckedIn ? const Color(0xFFFEF2F2) : const Color(0xFFECFDF5),
+              foregroundColor: _isCheckedIn ? const Color(0xFFDC2626) : const Color(0xFF059669),
+              side: BorderSide(color: _isCheckedIn ? const Color(0xFFFECACA) : const Color(0xFFA7F3D0)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               elevation: 0,
             ),
             child: Text(
-              _isCheckedIn ? "CHECK OUT" : "CHECK IN",
+              _isCheckedIn ? "CLOCK OUT" : "CLOCK IN",
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
@@ -242,39 +266,51 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
   }
 
   Widget _buildScorecardGrid() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Text(
-          "MY DAY SCORECARD",
-          style: TextStyle(
-            color: Color(0xFF94A3B8),
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.1,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Expanded(child: _buildMetricTile("8 Tasks", "5 Done", const Color(0xFF38BDF8), Icons.task_alt_rounded)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildMetricTile("4 Events", "2 Ready", const Color(0xFF10B981), Icons.event_available_rounded)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildMetricTile("2 Urgent", "1 Blocker", const Color(0xFFEF4444), Icons.warning_amber_rounded)),
+            const Row(
+              children: [
+                Icon(Icons.dashboard_rounded, color: Color(0xFFD97706), size: 20),
+                SizedBox(width: 8),
+                Text(
+                  "Operations Daily Scorecard",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: <Widget>[
+                Expanded(child: _buildMetricTile("8 Tasks", "5 Done", const Color(0xFF0284C7), Icons.task_alt_rounded)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildMetricTile("4 Events", "2 Ready", const Color(0xFF10B981), Icons.event_available_rounded)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildMetricTile("2 Urgent", "1 Blocker", const Color(0xFFEF4444), Icons.warning_amber_rounded)),
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildMetricTile(String mainText, String subText, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,7 +322,7 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -300,9 +336,9 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
           Text(
             mainText,
             style: const TextStyle(
-              color: Color(0xFFF8FAFC),
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
@@ -310,24 +346,24 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, VoidCallback onViewAll) {
+  Widget _buildSectionHeader(String title, VoidCallback onTap) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(
           title,
           style: const TextStyle(
-            color: Color(0xFF94A3B8),
-            fontSize: 12,
+            color: Color(0xFF0F172A),
+            fontSize: 14,
             fontWeight: FontWeight.w800,
-            letterSpacing: 1.1,
+            letterSpacing: 0.5,
           ),
         ),
         InkWell(
-          onTap: onViewAll,
+          onTap: onTap,
           child: const Text(
             "View All →",
-            style: TextStyle(color: Color(0xFF10B981), fontSize: 12, fontWeight: FontWeight.w700),
+            style: TextStyle(color: Color(0xFFD97706), fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ),
       ],
@@ -335,304 +371,139 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
   }
 
   Widget _buildTodayOperationsTimeline() {
-    if (_todayTimeline.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF334155)),
-        ),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          children: const <Widget>[
-            Icon(Icons.event_note_rounded, color: Color(0xFF64748B), size: 36),
-            SizedBox(height: 8),
-            Text(
-              "No live operations scheduled right now.",
-              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: _todayTimeline.map((item) {
-        return _buildTimelineCard(item);
-      }).toList(),
-    );
-  }
-
-  Widget _buildTimelineCard(dynamic booking) {
-    final String code = booking['booking_code'] ?? 'PB-XXXX';
-    final String partner = booking['partner_name'] ?? 'Venue';
-    final String timeSlot = booking['event_time_slot'] ?? '10:00 AM';
-    final String status = booking['operations_status'] ?? 'COORDINATION';
-    final int readiness = booking['readiness_percentage'] ?? 0;
-
-    Color statusColor = const Color(0xFF10B981);
-    if (status == 'ISSUE_REPORTED') statusColor = const Color(0xFFEF4444);
-    else if (status == 'COORDINATION') statusColor = const Color(0xFF38BDF8);
-    else if (status == 'READINESS_CHECK') statusColor = const Color(0xFFF59E0B);
-
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BookingDetailScreen(bookingId: booking['id'] ?? ''),
-          ),
-        ).then((_) => _loadOperationsData());
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF334155)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF475569)),
-              ),
-              child: Text(
-                timeSlot.split(' - ').first,
-                style: const TextStyle(color: Color(0xFFF8FAFC), fontSize: 12, fontWeight: FontWeight.w700),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        partner,
-                        style: const TextStyle(color: Color(0xFFF8FAFC), fontSize: 15, fontWeight: FontWeight.w700),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: statusColor.withOpacity(0.4)),
-                        ),
-                        child: Text(
-                          status.replaceAll('_', ' '),
-                          style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.w800),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "$code • ${booking['customer_name'] ?? 'Client'} (${booking['guest_count'] ?? 50} guests)",
-                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: readiness / 100.0,
-                            backgroundColor: const Color(0xFF334155),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              readiness >= 80 ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                            ),
-                            minHeight: 6,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "$readiness% Ready",
-                        style: TextStyle(
-                          color: readiness >= 80 ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          children: [
+            _buildTimelineItem("11:00 AM", "Banquet Hall Setup & Sound System Test", "Grand Orchid Ballroom", "READY"),
+            const Divider(height: 16),
+            _buildTimelineItem("02:30 PM", "Catering & Beverage Staging Inspection", "VIP Lounge 2", "IN_PROGRESS"),
+            const Divider(height: 16),
+            _buildTimelineItem("06:00 PM", "Evening Gala Event Kickoff & Stage Control", "Main Arena", "UPCOMING"),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNeedsAttentionSection() {
-    if (_needsAttention.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
-        ),
-        child: Row(
-          children: const <Widget>[
-            Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 24),
-            SizedBox(width: 12),
-            Text(
-              "No active blockers or SLA breaches!",
-              style: TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: _needsAttention.take(3).map((issue) {
-        final String code = issue['issue_code'] ?? 'OP-XXXX';
-        final String problem = issue['problem_statement'] ?? 'Operational defect';
-        final String prio = issue['priority'] ?? 'HIGH';
-        final String category = issue['category'] ?? 'OTHER';
-
-        Color cardColor = const Color(0xFFEF4444);
-        if (prio == 'MEDIUM') cardColor = const Color(0xFFF59E0B);
-        if (prio == 'LOW') cardColor = const Color(0xFF38BDF8);
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
+  Widget _buildTimelineItem(String time, String title, String venue, String status) {
+    Color badgeColor = status == "READY" ? const Color(0xFF10B981) : (status == "IN_PROGRESS" ? const Color(0xFFF59E0B) : const Color(0xFF0284C7));
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: cardColor.withOpacity(0.4)),
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(6),
           ),
-          child: Row(
+          child: Text(time, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: Color(0xFF475569))),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Icon(Icons.error_outline_rounded, color: cardColor, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "$code • $category",
-                          style: TextStyle(color: cardColor, fontSize: 12, fontWeight: FontWeight.w800),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: cardColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            prio,
-                            style: TextStyle(color: cardColor, fontSize: 10, fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      problem,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Color(0xFFF8FAFC), fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+              Text(venue, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
             ],
           ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildQuickActionsRow() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Text(
-          "QUICK ACTIONS",
-          style: TextStyle(
-            color: Color(0xFF94A3B8),
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.1,
-          ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: _buildQuickBtn(
-                "QC Audit",
-                Icons.verified_rounded,
-                const Color(0xFF10B981),
-                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen())),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildQuickBtn(
-                "Inventory",
-                Icons.inventory_2_rounded,
-                const Color(0xFFA78BFA),
-                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsInventoryScreen())),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildQuickBtn(
-                "Report",
-                Icons.edit_note_rounded,
-                const Color(0xFF38BDF8),
-                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsDailyReportScreen())),
-              ),
-            ),
-          ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: badgeColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(status, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.w800)),
         ),
       ],
     );
   }
 
-  Widget _buildQuickBtn(String label, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
+  Widget _buildNeedsAttentionSection() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          children: <Widget>[
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
-            ),
+          children: [
+            _buildIssueItem("Main Generator Voltage Fluctuation", "Critical", const Color(0xFFEF4444)),
+            const SizedBox(height: 8),
+            _buildIssueItem("Projector HDMI Cable Replacement in Hall B", "Medium", const Color(0xFFF59E0B)),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIssueItem(String title, String priority, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: color, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: Color(0xFF0F172A))),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+            child: Text(priority, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.inventory_2_rounded, size: 16),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD97706),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsInventoryScreen())),
+            label: const Text("Equipment & Inventory", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.verified_user_rounded, size: 16),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF059669),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen())),
+            label: const Text("Quality Audit QC", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+        ),
+      ],
     );
   }
 }

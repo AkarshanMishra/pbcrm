@@ -1,43 +1,44 @@
 import 'package:flutter/material.dart';
 import 'operations_home_screen.dart';
 import 'operations_work_screen.dart';
-import 'operations_dashboard_screen.dart';
+import 'operations_issues_screen.dart';
 import 'operations_requests_screen.dart';
 import 'operations_profile_screen.dart';
 import 'operations_manager_team_screen.dart';
-import 'operations_issues_screen.dart';
-import 'quality_control_screen.dart';
 import 'operations_inventory_screen.dart';
+import 'quality_control_screen.dart';
 import 'operations_daily_report_screen.dart';
 
 class OperationsShellScreen extends StatefulWidget {
   final bool isManager;
-  const OperationsShellScreen({super.key, this.isManager = false});
+  final int initialTabIndex;
+  const OperationsShellScreen({super.key, this.isManager = false, this.initialTabIndex = 0});
 
   @override
   State<OperationsShellScreen> createState() => _OperationsShellScreenState();
 }
 
-class _OperationsShellScreenState extends State<OperationsShellScreen> {
-  int _currentIndex = 0;
+class _OperationsShellScreenState extends State<OperationsShellScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   late bool _managerView;
 
   @override
   void initState() {
     super.initState();
     _managerView = widget.isManager;
+    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
-  void _onTabSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _showQuickActionSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -55,18 +56,18 @@ class _OperationsShellScreenState extends State<OperationsShellScreen> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF475569),
+                      color: const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
                 const Text(
-                  "OPERATIONS QUICK ACTIONS",
+                  "OPERATIONS FAST ACTIONS",
                   style: TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 12,
+                    color: Color(0xFF0F172A),
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 1.1,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -76,17 +77,7 @@ class _OperationsShellScreenState extends State<OperationsShellScreen> {
                   children: <Widget>[
                     _buildActionItem(
                       ctx,
-                      label: "+ Task",
-                      icon: Icons.add_task_rounded,
-                      color: const Color(0xFF38BDF8),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        setState(() => _currentIndex = 1);
-                      },
-                    ),
-                    _buildActionItem(
-                      ctx,
-                      label: "+ Issue",
+                      label: "Log Issue",
                       icon: Icons.report_problem_rounded,
                       color: const Color(0xFFEF4444),
                       onTap: () {
@@ -96,29 +87,9 @@ class _OperationsShellScreenState extends State<OperationsShellScreen> {
                     ),
                     _buildActionItem(
                       ctx,
-                      label: "Quality Audit",
-                      icon: Icons.verified_rounded,
-                      color: const Color(0xFF10B981),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen()));
-                      },
-                    ),
-                    _buildActionItem(
-                      ctx,
-                      label: "+ Request",
-                      icon: Icons.post_add_rounded,
-                      color: const Color(0xFFF59E0B),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        setState(() => _currentIndex = 3);
-                      },
-                    ),
-                    _buildActionItem(
-                      ctx,
-                      label: "Asset Inventory",
+                      label: "Inventory",
                       icon: Icons.inventory_2_rounded,
-                      color: const Color(0xFFA78BFA),
+                      color: const Color(0xFFD97706),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsInventoryScreen()));
@@ -126,9 +97,19 @@ class _OperationsShellScreenState extends State<OperationsShellScreen> {
                     ),
                     _buildActionItem(
                       ctx,
+                      label: "Quality Audit",
+                      icon: Icons.verified_user_rounded,
+                      color: const Color(0xFF059669),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const QualityControlScreen()));
+                      },
+                    ),
+                    _buildActionItem(
+                      ctx,
                       label: "Daily Report",
-                      icon: Icons.edit_note_rounded,
-                      color: const Color(0xFF34D399),
+                      icon: Icons.assignment_turned_in_rounded,
+                      color: const Color(0xFF0284C7),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsDailyReportScreen()));
@@ -158,9 +139,9 @@ class _OperationsShellScreenState extends State<OperationsShellScreen> {
         width: 100,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: <Widget>[
@@ -179,75 +160,105 @@ class _OperationsShellScreenState extends State<OperationsShellScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = <Widget>[
-      OperationsHomeScreen(
-        onSwitchToWork: () => setState(() => _currentIndex = 1),
-        onSwitchToOperations: () => setState(() => _currentIndex = 2),
-        onSwitchToRequests: () => setState(() => _currentIndex = 3),
-      ),
-      const OperationsWorkScreen(),
-      _managerView ? const OperationsManagerTeamScreen() : const OperationsDashboardScreen(),
-      const OperationsRequestsScreen(),
-      OperationsProfileScreen(
-        onSwitchToManager: () {
-          setState(() {
-            _managerView = !_managerView;
-          });
-        },
-      ),
-    ];
-
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF10B981),
-        onPressed: _showQuickActionSheet,
-        child: const Icon(Icons.bolt_rounded, color: Color(0xFF0F172A), size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: const Color(0xFF1E293B),
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              _buildNavItem(0, Icons.home_rounded, "Home"),
-              _buildNavItem(1, Icons.assignment_rounded, "Work"),
-              const SizedBox(width: 40),
-              _buildNavItem(2, _managerView ? Icons.groups_rounded : Icons.precision_manufacturing_rounded, _managerView ? "Team" : "Operations"),
-              _buildNavItem(3, Icons.all_inbox_rounded, "Requests"),
-            ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: const Icon(Icons.settings_suggest_rounded, color: Color(0xFFD97706), size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Operations Control Tower',
+                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                ),
+                Text(
+                  'Event Staging, Venue Coordination, Logistics, Quality Audits & Daily Service',
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bolt_rounded, color: Color(0xFFD97706)),
+            tooltip: 'Fast Actions',
+            onPressed: _showQuickActionSheet,
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(44),
+          child: Container(
+            color: Colors.white,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorColor: const Color(0xFFD97706),
+              indicatorWeight: 3,
+              labelColor: const Color(0xFFD97706),
+              unselectedLabelColor: const Color(0xFF64748B),
+              labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              tabs: [
+                _buildTab(Icons.dashboard_rounded, 'Operations Overview'),
+                _buildTab(Icons.assignment_rounded, 'Field Work & Tasks'),
+                _buildTab(_managerView ? Icons.groups_rounded : Icons.report_problem_rounded, _managerView ? 'Team Oversight' : 'Incidents & Issues'),
+                _buildTab(Icons.inventory_2_rounded, 'Equipment & Logistics'),
+                _buildTab(Icons.person_outline_rounded, 'Profile & Settings'),
+              ],
+            ),
           ),
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          OperationsHomeScreen(
+            onSwitchToWork: () => _tabController.animateTo(1),
+            onSwitchToOperations: () => _tabController.animateTo(2),
+            onSwitchToRequests: () => _tabController.animateTo(3),
+          ),
+          const OperationsWorkScreen(),
+          _managerView ? const OperationsManagerTeamScreen() : const OperationsIssuesScreen(),
+          const OperationsInventoryScreen(),
+          OperationsProfileScreen(
+            onSwitchToManager: () {
+              setState(() {
+                _managerView = !_managerView;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    bool isSel = _currentIndex == index;
-    Color col = isSel ? const Color(0xFF10B981) : const Color(0xFF94A3B8);
-    return InkWell(
-      onTap: () => _onTabSelected(index),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, color: col, size: 20),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(color: col, fontSize: 10, fontWeight: isSel ? FontWeight.w800 : FontWeight.w500),
-            ),
-          ],
-        ),
+  Widget _buildTab(IconData icon, String label) {
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
       ),
     );
   }
