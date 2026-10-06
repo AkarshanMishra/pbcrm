@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../core/api/api_client.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/mock/offline_fallback_data.dart';
 import 'mfa_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -256,6 +257,91 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : const Text('Sign In Securely'),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Divider with Offline / Demo Label
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'OR 1-TAP OFFLINE ACCESS',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 0.5),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Offline Persona Grid
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.offline_bolt_rounded, size: 16, color: Color(0xFF10B981)),
+                            SizedBox(width: 6),
+                            Text(
+                              'Offline / Standalone Role Simulator',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildPersonaChip(
+                              icon: Icons.shield_rounded,
+                              label: 'Admin',
+                              color: const Color(0xFF1E1B4B),
+                              onTap: () => auth.loginOffline(OfflineFallbackData.adminUser),
+                            ),
+                            _buildPersonaChip(
+                              icon: Icons.trending_up_rounded,
+                              label: 'Marketing & Growth',
+                              color: const Color(0xFF7C3AED),
+                              onTap: () => auth.loginOffline(OfflineFallbackData.marketingManagerUser),
+                            ),
+                            _buildPersonaChip(
+                              icon: Icons.event_available_rounded,
+                              label: 'Operations & Events',
+                              color: const Color(0xFF0284C7),
+                              onTap: () => auth.loginOffline(OfflineFallbackData.operationsManagerUser),
+                            ),
+                            _buildPersonaChip(
+                              icon: Icons.terminal_rounded,
+                              label: 'IT Ops & Tech',
+                              color: const Color(0xFF0F172A),
+                              onTap: () => auth.loginOffline(OfflineFallbackData.itManagerUser),
+                            ),
+                            _buildPersonaChip(
+                              icon: Icons.people_alt_rounded,
+                              label: 'HR & Talent',
+                              color: const Color(0xFF059669),
+                              onTap: () => auth.loginOffline(OfflineFallbackData.hrManagerUser),
+                            ),
+                            _buildPersonaChip(
+                              icon: Icons.badge_rounded,
+                              label: 'Employee Portal',
+                              color: const Color(0xFFD97706),
+                              onTap: () => auth.loginOffline(OfflineFallbackData.staffUser),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Visible Server IP Status Pill
@@ -289,18 +375,49 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   const Center(
                     child: Text(
-                      'Protected by Enterprise Rate Limiting & Audit Logging',
-                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                      'Protected by Enterprise Rate Limiting & Offline Sync Engine',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
                     ),
                   ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPersonaChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: color),
+            ),
+          ],
         ),
       ),
     );

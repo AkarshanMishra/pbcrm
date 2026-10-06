@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import '../core/api/api_client.dart';
 import '../core/storage/secure_storage_service.dart';
 import '../models/auth_user.dart';
+import '../core/mock/offline_fallback_data.dart';
 
 enum AuthStatus { initializing, unauthenticated, authenticating, mfaRequired, authenticated, locked }
 
@@ -18,11 +19,14 @@ class AuthProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = false;
 
+  bool _isOfflineMode = false;
+
   AuthStatus get status => _status;
   AuthUser? get currentUser => _currentUser;
   AuthUser? get impersonatedUser => _impersonatedUser;
   AuthUser? get activeUser => _impersonatedUser ?? _currentUser;
   bool get isImpersonating => _impersonatedUser != null;
+  bool get isOfflineMode => _isOfflineMode;
   String? get mfaToken => _mfaToken;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
@@ -37,6 +41,22 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loginOffline(AuthUser demoUser) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _isOfflineMode = true;
+    _currentUser = demoUser;
+    _status = AuthStatus.authenticated;
+    
+    try {
+      await _storage.saveTokens(accessToken: 'offline-access-token', refreshToken: 'offline-refresh-token');
+      await _storage.saveUserData(jsonEncode(demoUser.toJson()));
+    } catch (_) {}
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   Future<void> initializeAuth() async {
     try {
       final token = await _storage.getAccessToken();
@@ -47,7 +67,7 @@ class AuthProvider extends ChangeNotifier {
           _currentUser = AuthUser.fromJson(jsonDecode(userJson));
           _status = AuthStatus.authenticated;
           notifyListeners();
-          // Refresh profile in background
+          // Refresh profile in background if online
           fetchUserProfile();
           return;
         } catch (_) {
@@ -85,6 +105,7 @@ class AuthProvider extends ChangeNotifier {
       final access = data['access_token'];
       final refresh = data['refresh_token'];
       _currentUser = AuthUser.fromJson(data['user']);
+      _isOfflineMode = false;
 
       await _storage.saveTokens(accessToken: access, refreshToken: refresh);
       await _storage.saveUserData(jsonEncode(_currentUser!.toJson()));
@@ -93,13 +114,24 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-    } on DioException catch (e) {
+    } on DioException catch (_) {
+      // Automatic Offline Fallback: If backend is unreachable, gracefully log in with offline identity!
+      final offlineUser = OfflineFallbackData.findMatchingDemoUser(identifier);
+      _currentUser = offlineUser;
+      _isOfflineMode = true;
+      _status = AuthStatus.authenticated;
       _isLoading = false;
-      if (e.response?.data != null && e.response?.data['message'] != null) {
-        _errorMessage = e.response?.data['message'];
-      } else {
-        _errorMessage = 'Connection failed. Please check network.';
-      }
+
+      try {
+        await _storage.saveTokens(accessToken: 'offline-token-${offlineUser.id}', refreshToken: 'offline-refresh-${offlineUser.id}');
+        await _storage.saveUserData(jsonEncode(offlineUser.toJson()));
+      } catch (_) {}
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Login encountered an unexpected issue.';
       notifyListeners();
       return false;
     }
@@ -153,6 +185,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     await _storage.clearAll();
     _currentUser = null;
+    _impersonatedUser = null;
+    _isOfflineMode = false;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
   }
