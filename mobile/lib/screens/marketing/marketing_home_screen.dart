@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import 'visit_management_screen.dart';
 import 'leads_pipeline_screen.dart';
 import 'partner_onboarding_screen.dart';
+import 'admin_marketing_growth_screen.dart';
 import '../search/universal_search_screen.dart';
 import '../notifications/notification_center_screen.dart';
 
@@ -115,6 +116,11 @@ class _MarketingHomeScreenState extends State<MarketingHomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.hub_rounded, color: Color(0xFF2563EB)),
+            tooltip: 'Growth Command Center',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMarketingGrowthScreen())),
+          ),
           IconButton(
             icon: const Icon(Icons.search_rounded, color: Color(0xFF334155)),
             tooltip: 'Universal Search',

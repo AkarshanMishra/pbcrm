@@ -33,6 +33,7 @@ import '../employee/employee_dashboard_screen.dart';
 import '../hr/hr_shell_screen.dart';
 import '../it/it_shell_screen.dart';
 import '../marketing/marketing_shell_screen.dart';
+import '../marketing/admin_marketing_growth_screen.dart';
 import '../operations/operations_shell_screen.dart';
 import '../accounts/accounts_finance_screen.dart';
 import '../calendar/calendar_screen.dart';
@@ -300,11 +301,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Color(0xFFECFDF5), child: Icon(Icons.campaign, color: Colors.teal)),
-              title: const Text('Marketing & Field Work', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('Client visits, field GPS check-ins, lead pipeline & campaign metrics'),
+              title: const Text('Marketing & Growth Command Center', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('CRM, Acquisition, Campaigns, Partner Growth, Attribution & Funnel'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketingShellScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMarketingGrowthScreen()));
               },
             ),
             ListTile(
@@ -649,7 +650,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 103:
         return const ITShellScreen();
       case 104:
-        return const MarketingShellScreen();
+        return const AdminMarketingGrowthScreen();
       case 105:
         return const OperationsShellScreen();
       case 106:
