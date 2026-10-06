@@ -3,10 +3,12 @@ import '../../core/api/api_client.dart';
 import 'onboarding_wizard_screen.dart';
 import 'hr_attendance_screen.dart';
 import 'hr_documents_screen.dart';
-import 'hr_requests_screen.dart';
 import 'hr_recruitment_screen.dart';
 import 'hr_policies_screen.dart';
-import 'hr_daily_report_screen.dart';
+import 'hr_performance_screen.dart';
+import 'hr_training_screen.dart';
+import 'hr_offboarding_screen.dart';
+import '../admin/add_employee_wizard_sheet.dart';
 
 class HRHomeScreen extends StatefulWidget {
   final VoidCallback? onNavigateToPeople;
@@ -23,9 +25,9 @@ class HRHomeScreen extends StatefulWidget {
 
 class _HRHomeScreenState extends State<HRHomeScreen> {
   final ApiClient _api = ApiClient();
-  bool _isLoading = true;
   bool _isCheckedIn = true;
-  String _checkInTime = "09:15 AM";
+  final String _checkInTime = "09:15 AM";
+
 
   Map<String, dynamic> _telemetry = {
     'workforce': {
@@ -64,10 +66,9 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
   }
 
   Future<void> _fetchDashboardData() async {
-    setState(() => _isLoading = true);
     try {
       final res = await _api.dio.get('/hr/telemetry/');
-      if (res.statusCode == 200 && res.data != null) {
+      if (res.statusCode == 200 && res.data != null && mounted) {
         setState(() {
           _telemetry = res.data;
         });
@@ -76,60 +77,118 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
 
     try {
       final resAnnounce = await _api.dio.get('/hr/announcements/');
-      if (resAnnounce.statusCode == 200 && resAnnounce.data != null) {
+      if (resAnnounce.statusCode == 200 && resAnnounce.data != null && mounted) {
         final list = resAnnounce.data is List ? resAnnounce.data : resAnnounce.data['results'] ?? [];
         setState(() {
           _announcements = list;
         });
       }
     } catch (_) {}
+  }
 
-    setState(() => _isLoading = false);
+
+  void _showAddEmployeeWizard() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AddEmployeeWizardSheet(
+        onEmployeeCreated: _fetchDashboardData,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _fetchDashboardData,
-          color: const Color(0xFFEC4899),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 16),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: RefreshIndicator(
+        onRefresh: _fetchDashboardData,
+        color: const Color(0xFFEC4899),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Welcome Greeting & Fast Clock-in Bar
+              _buildHeader(),
+              const SizedBox(height: 20),
+
+              // 2. Main Executive Grid
+              if (isDesktop) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Column (Workforce & Attendance Analytics)
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        children: [
+                          _buildWorkforceOverview(),
+                          const SizedBox(height: 16),
+                          _buildTodayAttendanceCard(),
+                          const SizedBox(height: 16),
+                          _buildRecruitmentPipelineCard(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+
+                    // Right Column (Needs Attention & Quick Fast Actions)
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        children: [
+                          _buildNeedsAttentionSection(),
+                          const SizedBox(height: 16),
+                          _buildQuickActionsGrid(),
+                          const SizedBox(height: 16),
+                          _buildAnnouncementsSection(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
                 _buildWorkforceOverview(),
                 const SizedBox(height: 16),
                 _buildTodayAttendanceCard(),
                 const SizedBox(height: 16),
                 _buildNeedsAttentionSection(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 _buildQuickActionsGrid(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 _buildRecruitmentPipelineCard(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 _buildAnnouncementsSection(),
-                const SizedBox(height: 30),
               ],
-            ),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
     );
   }
 
+  // ===========================================================================
+  // 1. WELCOME HEADER
+  // ===========================================================================
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF334155)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -141,41 +200,49 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
                 const Row(
                   children: [
                     Text(
-                      "Good Morning, HR Team 👋",
+                      "Executive Workforce Command Center 👋",
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
                         color: Colors.white,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 const Text(
-                  "People & Workforce Management",
+                  "Real-time Enterprise HR Operations, Talent Roster, Leave Approvals & Department Governance",
                   style: TextStyle(
                     fontSize: 13,
                     color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
                         color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (_isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.5),
+                            blurRadius: 6,
+                          )
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Text(
-                      _isCheckedIn ? "CHECKED IN • $_checkInTime" : "CHECKED OUT",
+                      _isCheckedIn ? "ATTENDANCE LOGGED • CHECKED IN AT $_checkInTime" : "CURRENTLY CHECKED OUT",
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: _isCheckedIn ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                        letterSpacing: 0.4,
                       ),
                     ),
                   ],
@@ -183,11 +250,10 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
               ],
             ),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
+            icon: Icon(_isCheckedIn ? Icons.logout_rounded : Icons.login_rounded, size: 16),
             onPressed: () {
-              setState(() {
-                _isCheckedIn = !_isCheckedIn;
-              });
+              setState(() => _isCheckedIn = !_isCheckedIn);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(_isCheckedIn ? "Checked in successfully" : "Checked out successfully"),
@@ -199,11 +265,11 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
               backgroundColor: _isCheckedIn ? const Color(0xFF334155) : const Color(0xFFEC4899),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),
-            child: Text(
-              _isCheckedIn ? "CHECK OUT" : "CHECK IN",
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            label: Text(
+              _isCheckedIn ? "CLOCK OUT" : "CLOCK IN",
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -211,64 +277,94 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
     );
   }
 
+  // ===========================================================================
+  // 2. WORKFORCE OVERVIEW
+  // ===========================================================================
   Widget _buildWorkforceOverview() {
     final wf = _telemetry['workforce'] ?? {};
     final total = wf['total'] ?? 124;
     final active = wf['active'] ?? 118;
     final onLeave = wf['on_leave'] ?? 6;
+    final onboarding = wf['onboarding'] ?? 5;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "WORKFORCE OVERVIEW",
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.8,
-            color: Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildMetricBox(
-                count: "$total",
-                label: "Employees",
-                color: const Color(0xFF3B82F6),
-                icon: Icons.people,
-                onTap: widget.onNavigateToPeople,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.groups_rounded, color: Color(0xFF2563EB), size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      "Workforce Composition",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: widget.onNavigateToPeople,
+                  child: const Text('View Full Roster →', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricBox(
-                count: "$active",
-                label: "Working Today",
-                color: const Color(0xFF10B981),
-                icon: Icons.badge,
-                onTap: widget.onNavigateToPeople,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricBox(
-                count: "$onLeave",
-                label: "On Leave",
-                color: const Color(0xFFF59E0B),
-                icon: Icons.beach_access,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HRAttendanceScreen(initialTabIndex: 2)),
-                  );
-                },
-              ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMetricBox(
+                    count: "$total",
+                    label: "Total Headcount",
+                    color: const Color(0xFF2563EB),
+                    icon: Icons.people_alt_rounded,
+                    onTap: widget.onNavigateToPeople,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricBox(
+                    count: "$active",
+                    label: "Active On-Duty",
+                    color: const Color(0xFF10B981),
+                    icon: Icons.badge_rounded,
+                    onTap: widget.onNavigateToPeople,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricBox(
+                    count: "$onLeave",
+                    label: "On Leave",
+                    color: const Color(0xFFF59E0B),
+                    icon: Icons.beach_access_rounded,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRAttendanceScreen())),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricBox(
+                    count: "$onboarding",
+                    label: "In Onboarding",
+                    color: const Color(0xFF8B5CF6),
+                    icon: Icons.person_add_rounded,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingWizardScreen())),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -279,36 +375,43 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
     required IconData icon,
     VoidCallback? onTap,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 6),
-            Text(
-              count,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  count,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                ),
+                Icon(icon, color: color, size: 20),
+              ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               label,
-              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF94A3B8),
-                fontWeight: FontWeight.w500,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -316,226 +419,266 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
     );
   }
 
+  // ===========================================================================
+  // 3. TODAY'S ATTENDANCE RADAR
+  // ===========================================================================
   Widget _buildTodayAttendanceCard() {
     final att = _telemetry['today_attendance'] ?? {};
     final present = att['present'] ?? 118;
-    final total = att['total_scheduled'] ?? 124;
-    final lateCount = att['late'] ?? 9;
+    final late = att['late'] ?? 9;
     final absent = att['absent'] ?? 6;
-    final pendingReports = att['pending_reports'] ?? 14;
+    final total = att['total_scheduled'] ?? 124;
+    final rate = total > 0 ? ((present / total) * 100).toInt() : 95;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF334155)),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "TODAY'S ATTENDANCE TELEMETRY",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                  color: Color(0xFF64748B),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.schedule_rounded, color: Color(0xFF10B981), size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      "Today's Attendance Radar",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                    ),
+                  ],
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HRAttendanceScreen()),
-                  );
-                },
-                child: const Text(
-                  "View Live >",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFEC4899),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                  ),
+                  child: Text(
+                    "$rate% Compliance",
+                    style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.w800, fontSize: 12),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: total > 0 ? (present / total) : 0.95,
+                minHeight: 8,
+                backgroundColor: const Color(0xFFF1F5F9),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildAttendanceRow("Attendance Rate", "$present / $total", const Color(0xFF10B981)),
-          const SizedBox(height: 8),
-          _buildAttendanceRow("Late Arrivals", "$lateCount", const Color(0xFFF59E0B)),
-          const SizedBox(height: 8),
-          _buildAttendanceRow("Absents / Unaccounted", "$absent", const Color(0xFFEF4444)),
-          const SizedBox(height: 8),
-          _buildAttendanceRow("Pending Daily Reports", "$pendingReports", const Color(0xFF8B5CF6)),
-        ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildAttendanceStat("Present", "$present", const Color(0xFF10B981)),
+                _buildAttendanceStat("Late Arrival", "$late", const Color(0xFFF59E0B)),
+                _buildAttendanceStat("Absent / Unlogged", "$absent", const Color(0xFFEF4444)),
+                _buildAttendanceStat("Total Expected", "$total", const Color(0xFF2563EB)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAttendanceRow(String label, String value, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildAttendanceStat(String label, String value, Color color) {
+    return Column(
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 13, color: Color(0xFFCBD5E1)),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
-          ),
-        ),
+        Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: color)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
       ],
     );
   }
 
+  // ===========================================================================
+  // 4. ACTIONABLE NEEDS ATTENTION SECTION
+  // ===========================================================================
   Widget _buildNeedsAttentionSection() {
     final na = _telemetry['needs_attention'] ?? {};
-    final corrections = na['attendance_corrections'] ?? 3;
-    final onboarding = na['onboarding_pending'] ?? 5;
-    final expiringDocs = na['expiring_docs'] ?? 2;
-    final pendingReqs = na['pending_requests'] ?? 4;
+    final leaves = na['pending_leaves'] ?? 3;
+    final reqs = na['pending_requests'] ?? 4;
+    final docs = na['expiring_docs'] ?? 2;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF334155)),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 18),
-              SizedBox(width: 8),
-              Text(
-                "NEEDS ATTENTION (EXCEPTIONS)",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                  color: Color(0xFFEF4444),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 20),
+                SizedBox(width: 8),
+                Text(
+                  "Action Items & Pending Approvals",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildAttentionItem(
-            color: const Color(0xFFEF4444),
-            text: "$corrections Attendance Corrections Pending",
-            actionLabel: "Review",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const HRAttendanceScreen(initialTabIndex: 1)),
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildAttentionItem(
-            color: const Color(0xFFF97316),
-            text: "$onboarding Onboarding Checklists in Progress",
-            actionLabel: "Open",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const OnboardingWizardScreen()),
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildAttentionItem(
-            color: const Color(0xFFEAB308),
-            text: "$expiringDocs Documents Expiring / Missing",
-            actionLabel: "Verify",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const HRDocumentsScreen()),
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildAttentionItem(
-            color: const Color(0xFFA855F7),
-            text: "$pendingReqs Pending HR Requests",
-            actionLabel: "Process",
-            onTap: widget.onNavigateToRequests,
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildAttentionItem(
+              title: "$leaves Leave Approvals Pending",
+              subtitle: "Staff awaiting manager/admin sign-off",
+              color: const Color(0xFFF59E0B),
+              icon: Icons.event_available_rounded,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRAttendanceScreen())),
+            ),
+            const SizedBox(height: 8),
+            _buildAttentionItem(
+              title: "$reqs HR Service Requests",
+              subtitle: "Salary slips, certificates, and inquiries",
+              color: const Color(0xFF2563EB),
+              icon: Icons.assignment_turned_in_rounded,
+              onTap: widget.onNavigateToRequests,
+            ),
+            const SizedBox(height: 8),
+            _buildAttentionItem(
+              title: "$docs Employee Documents Expiring",
+              subtitle: "IDs and compliance renewals required",
+              color: const Color(0xFFEF4444),
+              icon: Icons.verified_user_rounded,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRDocumentsScreen())),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAttentionItem({
+    required String title,
+    required String subtitle,
     required Color color,
-    required String text,
-    required String actionLabel,
-    VoidCallback? onTap,
+    required IconData icon,
+    required VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.25)),
+          color: color.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: color.withValues(alpha: 0.15),
+              child: Icon(icon, color: color, size: 16),
+            ),
+            const SizedBox(width: 12),
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      text,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                  Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                actionLabel,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 5. QUICK OPERATIONS GRID
+  // ===========================================================================
+  Widget _buildQuickActionsGrid() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.dashboard_customize_rounded, color: Color(0xFF8B5CF6), size: 20),
+                SizedBox(width: 8),
+                Text(
+                  "Workforce Fast Actions",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                 ),
-              ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 2.2,
+              children: [
+                _buildActionBtn(
+                  label: "Add Employee",
+                  icon: Icons.person_add_rounded,
+                  color: const Color(0xFFEC4899),
+                  onTap: _showAddEmployeeWizard,
+                ),
+                _buildActionBtn(
+                  label: "Recruitment ATS",
+                  icon: Icons.work_outline_rounded,
+                  color: const Color(0xFF2563EB),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRRecruitmentScreen())),
+                ),
+                _buildActionBtn(
+                  label: "Company Policies",
+                  icon: Icons.menu_book_rounded,
+                  color: const Color(0xFF8B5CF6),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRPoliciesScreen())),
+                ),
+                _buildActionBtn(
+                  label: "Performance KPA",
+                  icon: Icons.stars_rounded,
+                  color: const Color(0xFFF59E0B),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRPerformanceScreen())),
+                ),
+                _buildActionBtn(
+                  label: "Training Programs",
+                  icon: Icons.school_rounded,
+                  color: const Color(0xFF06B6D4),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRTrainingScreen())),
+                ),
+                _buildActionBtn(
+                  label: "Offboarding Clearance",
+                  icon: Icons.exit_to_app_rounded,
+                  color: const Color(0xFFEF4444),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HROffboardingScreen())),
+                ),
+              ],
             ),
           ],
         ),
@@ -543,145 +686,36 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
     );
   }
 
-  Widget _buildQuickActionsGrid() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "QUICK ACTIONS",
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.8,
-            color: Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 10),
-        GridView.count(
-          crossAxisCount: 4,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            _buildActionIcon(
-              icon: Icons.person_add_alt_1,
-              label: "+ Employee",
-              color: const Color(0xFFEC4899),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const OnboardingWizardScreen()),
-                );
-              },
-            ),
-            _buildActionIcon(
-              icon: Icons.event_available,
-              label: "Leave Apprv",
-              color: const Color(0xFF3B82F6),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HRAttendanceScreen(initialTabIndex: 2)),
-                );
-              },
-            ),
-            _buildActionIcon(
-              icon: Icons.campaign,
-              label: "Announce",
-              color: const Color(0xFF10B981),
-              onTap: _showCreateAnnouncementDialog,
-            ),
-            _buildActionIcon(
-              icon: Icons.assignment_add,
-              label: "HR Request",
-              color: const Color(0xFF8B5CF6),
-              onTap: widget.onNavigateToRequests,
-            ),
-            _buildActionIcon(
-              icon: Icons.work_outline,
-              label: "+ Job",
-              color: const Color(0xFFF59E0B),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HRRecruitmentScreen()),
-                );
-              },
-            ),
-            _buildActionIcon(
-              icon: Icons.menu_book,
-              label: "Policies",
-              color: const Color(0xFF06B6D4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HRPoliciesScreen()),
-                );
-              },
-            ),
-            _buildActionIcon(
-              icon: Icons.verified_user,
-              label: "Verify Docs",
-              color: const Color(0xFF14B8A6),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HRDocumentsScreen()),
-                );
-              },
-            ),
-            _buildActionIcon(
-              icon: Icons.rate_review,
-              label: "Daily Report",
-              color: const Color(0xFFE11D48),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HRDailyReportScreen()),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionIcon({
-    required IconData icon,
+  Widget _buildActionBtn({
     required String label,
+    required IconData icon,
     required Color color,
-    VoidCallback? onTap,
+    required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF334155)),
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 20),
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: color.withValues(alpha: 0.2),
+              child: Icon(icon, color: color, size: 16),
             ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFE2E8F0),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -690,268 +724,165 @@ class _HRHomeScreenState extends State<HRHomeScreen> {
     );
   }
 
+  // ===========================================================================
+  // 6. ATS RECRUITMENT PIPELINE CARD
+  // ===========================================================================
   Widget _buildRecruitmentPipelineCard() {
     final rec = _telemetry['recruitment'] ?? {};
-    final openJobs = rec['open_jobs'] ?? 8;
-    final activeCandidates = rec['active_candidates'] ?? 24;
+    final jobs = rec['open_jobs'] ?? 8;
+    final candidates = rec['active_candidates'] ?? 24;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF334155)),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "TALENT ACQUISITION & HIRING",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HRRecruitmentScreen()),
-                  );
-                },
-                child: const Text(
-                  "Pipeline >",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFEC4899),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Active Openings", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
-                      const SizedBox(height: 4),
-                      Text("$openJobs Positions", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Candidates in Pipeline", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
-                      const SizedBox(height: 4),
-                      Text("$activeCandidates Applicants", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "COMPANY ANNOUNCEMENTS & EVENTS",
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.8,
-            color: Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 10),
-        if (_announcements.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              "No current announcements. Tap + to create one.",
-              style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-            ),
-          )
-        else
-          ..._announcements.take(3).map((ann) => Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF334155)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Icon(Icons.badge_rounded, color: Color(0xFFEC4899), size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      "Talent Acquisition & Hiring Pipeline",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HRRecruitmentScreen())),
+                  child: const Text('Manage ATS →', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDF2F8),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFBCFE8)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEC4899).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            ann['category'] ?? 'GENERAL',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFEC4899),
-                            ),
-                          ),
-                        ),
-                        if (ann['event_date'] != null)
-                          Text(
-                            ann['event_date'],
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                          ),
+                        Text("$jobs", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFFEC4899))),
+                        const Text("Open Job Openings", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      ann['title'] ?? '',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      ann['content'] ?? '',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFFCBD5E1),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              )),
-      ],
-    );
-  }
-
-  void _showCreateAnnouncementDialog() {
-    final titleCtrl = TextEditingController();
-    final contentCtrl = TextEditingController();
-    String category = 'GENERAL';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
-          title: const Text("Post HR Announcement", style: TextStyle(color: Colors.white)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: "Title",
-                    labelStyle: TextStyle(color: Color(0xFF94A3B8)),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF475569))),
                   ),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: category,
-                  dropdownColor: const Color(0xFF1E293B),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: "Category",
-                    labelStyle: TextStyle(color: Color(0xFF94A3B8)),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'GENERAL', child: Text("General Announcement")),
-                    DropdownMenuItem(value: 'EVENT', child: Text("Company Event")),
-                    DropdownMenuItem(value: 'HOLIDAY', child: Text("Holiday Schedule")),
-                    DropdownMenuItem(value: 'MILESTONE', child: Text("Milestone Celebration")),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setDState(() => category = val);
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: contentCtrl,
-                  maxLines: 3,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: "Content Details",
-                    labelStyle: TextStyle(color: Color(0xFF94A3B8)),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF475569))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("$candidates", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF2563EB))),
+                        const Text("Active Candidates", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel", style: TextStyle(color: Color(0xFF94A3B8))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 7. ANNOUNCEMENTS & BULLETIN
+  // ===========================================================================
+  Widget _buildAnnouncementsSection() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.campaign_rounded, color: Color(0xFF06B6D4), size: 20),
+                SizedBox(width: 8),
+                Text(
+                  "Company Announcements & Notices",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () async {
-                if (titleCtrl.text.isNotEmpty && contentCtrl.text.isNotEmpty) {
-                  try {
-                    await _api.dio.post('/hr/announcements/', data: {
-                      'title': titleCtrl.text,
-                      'category': category,
-                      'content': contentCtrl.text,
-                    });
-                    Navigator.pop(ctx);
-                    _fetchDashboardData();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Announcement published!"), backgroundColor: Color(0xFF10B981)),
-                    );
-                  } catch (_) {}
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEC4899)),
-              child: const Text("Publish", style: TextStyle(color: Colors.white)),
-            ),
+            const SizedBox(height: 12),
+            if (_announcements.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Color(0xFF64748B), size: 18),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "All systems operational. No urgent company-wide bulletins today.",
+                        style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _announcements.take(2).length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, idx) {
+                  final a = _announcements[idx];
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(a['title'] ?? 'Company Notice', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF166534))),
+                        const SizedBox(height: 2),
+                        Text(a['content'] ?? '', style: const TextStyle(fontSize: 11.5, color: Color(0xFF15803D)), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  );
+                },
+              ),
           ],
         ),
       ),
