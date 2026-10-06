@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <base href="/">
+  <script>
+    (function() {
+      var base = document.createElement('base');
+      var path = window.location.pathname;
+      if (path.indexOf('/app') === 0) {
+        base.setAttribute('href', '/app/');
+      } else {
+        base.setAttribute('href', '/');
+      }
+      document.head.insertBefore(base, document.head.firstChild);
+    })();
+  </script>
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="PCRM - Enterprise Workforce Management">
+  <meta name="description" content="PCRM - Enterprise Workforce & Department Operations Platform">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="PCRM Enterprise">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -19,11 +30,16 @@
   <title>PCRM Enterprise Portal</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    body {
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      background-color: #0F172A;
+    }
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
     }
     #loading-container {
       position: fixed;
@@ -35,19 +51,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #0F172A;
-      color: #F8FAFC;
+      background: #F8FAFC;
+      color: #0F172A;
       z-index: 999999;
-      transition: opacity 0.4s ease-out;
+      transition: opacity 0.3s ease-out;
     }
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #1E293B;
-      border-top: 4px solid #3B82F6;
+      width: 44px;
+      height: 44px;
+      border: 3.5px solid #E2E8F0;
+      border-top: 3.5px solid #2563EB;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 18px;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -55,14 +71,15 @@
     }
     .title {
       font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-      color: #F8FAFC;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+      color: #0F172A;
     }
     .subtitle {
       font-size: 13px;
-      color: #94A3B8;
+      color: #64748B;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -70,46 +87,40 @@
   <div id="loading-container">
     <div class="spinner"></div>
     <div class="title">PCRM Enterprise</div>
-    <div class="subtitle">Initializing secure workspace...</div>
+    <div class="subtitle">Loading workspace...</div>
   </div>
 
   <script>
-    // Forcibly clear any stale PWA service workers and CacheStorage
+    // Unregister stale service workers and clear caches
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (let registration of registrations) {
-          registration.unregister();
+        for (var i = 0; i < registrations.length; i++) {
+          registrations[i].unregister();
         }
       });
     }
     if ('caches' in window) {
       caches.keys().then(function(names) {
-        for (let name of names) {
-          caches.delete(name);
+        for (var i = 0; i < names.length; i++) {
+          caches.delete(names[i]);
         }
       });
     }
 
-    window.addEventListener('flutter-first-frame', function () {
+    function removeLoader() {
       var loader = document.getElementById('loading-container');
       if (loader) {
         loader.style.opacity = '0';
         setTimeout(function () {
-          loader.remove();
-        }, 400);
+          if (loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 300);
       }
-    });
+    }
 
-    // Fallback timer: if first frame isn't fired in 3s, fade loader anyway
-    setTimeout(function () {
-      var loader = document.getElementById('loading-container');
-      if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(function () {
-          loader.remove();
-        }, 400);
-      }
-    }, 3000);
+    window.addEventListener('flutter-first-frame', removeLoader);
+
+    // Fallback timer: ensure loader disappears even if first-frame event is delayed
+    setTimeout(removeLoader, 2500);
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
