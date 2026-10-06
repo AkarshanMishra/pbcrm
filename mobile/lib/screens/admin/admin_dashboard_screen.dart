@@ -35,6 +35,7 @@ import '../it/it_shell_screen.dart';
 import '../marketing/marketing_shell_screen.dart';
 import '../marketing/admin_marketing_growth_screen.dart';
 import '../operations/operations_shell_screen.dart';
+import '../operations/admin_operations_events_screen.dart';
 import '../accounts/accounts_finance_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../management/management_overview_screen.dart';
@@ -310,11 +311,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Color(0xFFFFFBEB), child: Icon(Icons.precision_manufacturing, color: Colors.amber)),
-              title: const Text('Operations', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('Daily service execution, banquet bookings, issues & coordinator board'),
+              title: const Text('Operations & Events Command Center', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('Booking 360°, Event Lifecycles, QC Checklists, Staff & Fleet Logistics, Issues & SLA'),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsShellScreen(isManager: true)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOperationsEventsScreen()));
               },
             ),
           ],
@@ -652,7 +653,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 104:
         return const AdminMarketingGrowthScreen();
       case 105:
-        return const OperationsShellScreen();
+        return const AdminOperationsEventsScreen();
       case 106:
         return const AccountsFinanceScreen();
       case 107:

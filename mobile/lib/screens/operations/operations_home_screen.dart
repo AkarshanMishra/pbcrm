@@ -5,6 +5,7 @@ import 'operations_issues_screen.dart';
 import 'quality_control_screen.dart';
 import 'operations_inventory_screen.dart';
 import 'operations_daily_report_screen.dart';
+import 'admin_operations_events_screen.dart';
 
 class OperationsHomeScreen extends StatefulWidget {
   final VoidCallback? onSwitchToWork;
@@ -181,18 +182,36 @@ class _OperationsHomeScreenState extends State<OperationsHomeScreen> {
               ],
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsDailyReportScreen()));
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD97706),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            icon: const Icon(Icons.assignment_turned_in_rounded, size: 16),
-            label: const Text("Daily Report", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOperationsEventsScreen()));
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFD97706),
+                  side: const BorderSide(color: Color(0xFFD97706)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.precision_manufacturing_rounded, size: 16),
+                label: const Text("Command Center", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const OperationsDailyReportScreen()));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFD97706),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.assignment_turned_in_rounded, size: 16),
+                label: const Text("Daily Report", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+            ],
           ),
         ],
       ),
